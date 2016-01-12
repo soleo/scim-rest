@@ -13,6 +13,10 @@ object Application extends Controller {
     Ok(views.html.index(null))
   }
 
+  def ping = Action {
+    Ok("pong")
+  }
+
   def db = Action {
     var out = ""
     val conn = DB.getConnection()

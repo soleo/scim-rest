@@ -1,6 +1,6 @@
 {
-  "name": "Getting Started with Scala on Heroku",
-  "description": "A barebones Scala app (using the Play framework), which can easily be deployed to Heroku.",
+  "name": "SCIM RESTful Service",
+  "description": "A simple partial implentation of SCIM protocol v1.1",
   "image": "heroku/scala",
   "addons": [ "heroku-postgresql" ]
 }

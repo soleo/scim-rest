@@ -1,4 +1,4 @@
-name := """play-getting-started"""
+name := """scim-rest"""
 
 version := "1.0-SNAPSHOT"
 
