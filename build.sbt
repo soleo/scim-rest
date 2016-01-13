@@ -10,7 +10,11 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
+  "mysql" % "mysql-connector-java" % "5.1.18",
   ws
 )
 
 libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ )
+
+
+fork in run := true

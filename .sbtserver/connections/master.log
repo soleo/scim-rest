@@ -1,0 +1,7 @@
+New log file opened at Tue Jan 12 23:57:56 CST 2016 by 5433@Xinjiangs-MBP.cable.rcn.com
+Taking next connection to: 50310
+New client attempting to connect on port: 50311-50310
+  Address = /192.168.1.149:50310
+This client on port 50311 has uuid c3639d18-fcfc-4b4d-b169-652cd1a82c0e configName play-fork-run humanReadableName Play Fork Run protocolVersion 1 featureTags Vector()
+Connected Clients: play-fork-run-c3639d18-fcfc-4b4d-b169-652cd1a82c0e
+Taking next connection to: 50310
