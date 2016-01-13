@@ -1,7 +1,0 @@
-New log file opened at Wed Jan 13 00:01:04 CST 2016 by 5682@Xinjiangs-MBP.cable.rcn.com
-Taking next connection to: 50386
-New client attempting to connect on port: 50387-50386
-  Address = /192.168.1.149:50386
-This client on port 50387 has uuid 7321a1ae-779b-4910-b8a0-9527ab769014 configName play-fork-run humanReadableName Play Fork Run protocolVersion 1 featureTags Vector()
-Connected Clients: play-fork-run-7321a1ae-779b-4910-b8a0-9527ab769014
-Taking next connection to: 50386
