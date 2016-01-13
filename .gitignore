@@ -16,3 +16,5 @@ dist
 /.settings
 hk-debug
 .env
+.sbtserver*
+*.logs
