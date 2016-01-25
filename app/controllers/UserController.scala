@@ -52,13 +52,12 @@ object UserController extends Controller {
           user.meta = RequestUtils.addMetaData(user, request)
           val response = Json.toJson(user)
           val flattenedJson = User.removeBaseTraits(response)
-    
+         
           // combine results
           val jsonObject = flattenedJson.as[JsObject]
           val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
 
           Ok(finalResponse)
-          
         }
     }
     
@@ -69,8 +68,8 @@ object UserController extends Controller {
     request.body.asJson.map { implicit json =>
       json.validate[BaseUser].map {
         case baseUser => {
-          //println(baseUser)
-          // add validation later
+          
+          // @TODO: add validation later
           val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
           val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
           val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
@@ -80,7 +79,8 @@ object UserController extends Controller {
           val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
           val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
           val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
-         
+          // @TODO: check for confilicts before adding, return 409 if conficts with current Users eg userName 
+          
           val fullUser: User = User.add(
                                         baseUser, 
                                         emails, 
@@ -93,7 +93,9 @@ object UserController extends Controller {
                                         roles,
                                         x509certs
                                         )
+        
           fullUser.meta = RequestUtils.addMetaData(fullUser, request)
+          
           //reset password before converting to JSON
           fullUser.baseUser.password = None 
           val response = Json.toJson(fullUser)
@@ -103,8 +105,8 @@ object UserController extends Controller {
           val jsonObject = flattenedJson.as[JsObject]
           val finalResponse = jsonObject ++ Json.toJson(fullUser.baseUser).as[JsObject]
 
-          Ok(finalResponse)
-
+          Created(finalResponse)
+            
         }
       }.recoverTotal{
         e => BadRequest(JsError.toJson(e))
@@ -115,11 +117,61 @@ object UserController extends Controller {
   }
 
   def replace(userId : String) = Action { implicit  request =>
-    Ok("")
+    val user = User.exists(userId)
+    user match {
+        case None => NotFound(RequestUtils.notFoundMessage(userId))
+        case Some(user) => {
+            request.body.asJson.map { implicit json =>
+              json.validate[BaseUser].map {
+                case baseUser => {
+                    //println(baseUser)
+                    val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
+                    val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
+                    val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
+                    val photos: Option[List[Photo]] = (json \ "photos").asOpt[List[Photo]]
+                    val addresses: Option[List[Address]] = (json \ "addresses").asOpt[List[Address]]
+                    val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
+                    val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
+                    val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
+                    val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
+                    // ignore any read-only attributes and password
+                    val fullUser: User = User.replace(
+                                        userId,
+                                        baseUser, 
+                                        emails, 
+                                        phoneNumbers,
+                                        ims,
+                                        photos,
+                                        addresses,
+                                        groups,
+                                        entitlements,
+                                        roles,
+                                        x509certs
+                                        )
+                    fullUser.meta = RequestUtils.addMetaData(fullUser, request)
+          
+                    //reset password before converting to JSON
+                    fullUser.baseUser.password = None 
+                    val response = Json.toJson(fullUser)
+                    val flattenedJson = User.removeBaseTraits(response)
+          
+                    // combine results
+                    val jsonObject = flattenedJson.as[JsObject]
+                    val finalResponse = jsonObject ++ Json.toJson(fullUser.baseUser).as[JsObject]
+                    Ok(finalResponse)
+                }
+              }.recoverTotal{
+                e => BadRequest(JsError.toJson(e))
+              }
+            }.getOrElse {
+              BadRequest("Expecting Json data")
+            }
+        }
+    }
   }
 
   def remove(userId : String) = Action { implicit request =>
-    val user = User.findOne(userId)
+    val user = User.exists(userId)
     user match {
         case None => NotFound(RequestUtils.notFoundMessage(userId))
         case Some(user) => {
@@ -129,6 +181,6 @@ object UserController extends Controller {
     }
   }
 
-  // https://gist.github.com/guillaumebort/2328236
+  // https://gist.github.com/guillaumebort/2328236 for auth
 
 }

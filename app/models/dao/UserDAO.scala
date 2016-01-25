@@ -10,7 +10,11 @@ import java.util.Date
 
 
 object UserDAO {
-    
+  
+  val emailParser = str("value") ~ str("emailType") ~get[Boolean]("isPrimary") map {
+      case value ~ emailType ~ isPrimary  => Email(value, emailType, StringUtils.optionalBoolean(isPrimary))
+  }
+  
   def exists(user: User): Boolean =  {
       DB.withConnection { implicit c =>
         val result = SQL("""
@@ -192,7 +196,21 @@ object UserDAO {
             row[Date]("created"),
             row[Date]("lastModified")
             )
-        User(row[String]("id"), baseUser, None, None, None, None, None, None, None, None, None, Some(meta))
+            
+        // get all emails belong to that user
+        val emails: List[Email] = SQL(
+                                    """
+                                        | SELECT value, type as emailType, isPrimary
+                                        | FROM `emails`
+                                        | WHERE `userId` = {userId};
+                                    """.stripMargin).on(
+                                        "userId" -> row[String]("id")
+                                    ).as(emailParser.*)
+        //println(emails)
+        val emailsOption = if(emails.isEmpty) None else Some(emails)
+        // get all groups
+        
+        User(row[String]("id"), baseUser, emailsOption, None, None, None, None, None, None, None, None, Some(meta))
       }.force.toList
     }
  }
@@ -242,15 +260,34 @@ object UserDAO {
             row[Date]("created"),
             row[Date]("lastModified")
             )
-        
-        User(row[String]("id"), baseUser, None, None, None, None, None, None, None, None, None, Some(meta))
+        val emails: List[Email] = SQL(
+                                    """
+                                        | SELECT value, type as emailType, isPrimary
+                                        | FROM `emails`
+                                        | WHERE `userId` = {userId};
+                                    """.stripMargin).on(
+                                        "userId" -> row[String]("id")
+                                    ).as(emailParser.*)
+        //println(emails)
+        val emailsOption = if(emails.isEmpty) None else Some(emails)
+        User(row[String]("id"), baseUser, emailsOption, None, None, None, None, None, None, None, None, Some(meta))
       }.force.toList
      
     }
  }
 
-  def updateOne(user: User) = {
-
+  def updateOne(user: User, replace: Boolean = false) = {
+    if(replace) {
+        // replace whole user
+        // Note: replace password if exsits, otherwise remain as old 
+        // step 1: get user password field and id 
+        // step 2: remove the whole user from database
+        // step 3: add current data set to database
+        
+        
+    }else{
+        // patch some fields
+    }
   }
   
   

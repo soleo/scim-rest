@@ -15,6 +15,15 @@ object User {
     
     implicit val userFormat  = Json.format[User]
     
+    def exists(userId: String) : Option[User] = {
+        val user = User(userId)
+        if(UserDAO.exists(user)){
+            Some(user)
+        }else{
+            None
+        }
+    }
+    
     def add(baseUser: BaseUser, 
             emails: Option[List[Email]], 
             phoneNumbers: Option[List[PhoneNumber]],
@@ -47,9 +56,17 @@ object User {
             entitlements: Option[List[Entitlement]],
             roles: Option[List[Role]],
             x509certs: Option[List[X509Certificate]]
-      ) = {
+      ): User = {
 
-      UserDAO.updateOne(User(userId, baseUser, emails, phoneNumbers, ims, photos, addresses, groups, entitlements, roles, x509certs))
+      UserDAO.updateOne(
+                        User(
+                             userId, baseUser, emails, 
+                             phoneNumbers, ims, photos, addresses, 
+                             groups, entitlements, roles, x509certs
+                             ),
+                        true
+                        )
+      UserDAO.findOne( User(userId) ).head
     }
 
     def findOne(userId: String): Option[User] = {
