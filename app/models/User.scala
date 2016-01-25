@@ -33,11 +33,23 @@ object User {
     }
     
     def delete(userId: String) = {
-      //UserDAO.delete(User(userId))
+      UserDAO.delete(User(userId))
     }
 
-    def replace(userId: String) = {
-      //UserDAO.update(User(userId))
+    def replace(userId: String,
+            baseUser: BaseUser, 
+            emails: Option[List[Email]], 
+            phoneNumbers: Option[List[PhoneNumber]],
+            ims: Option[List[Im]],
+            photos: Option[List[Photo]],
+            addresses: Option[List[Address]],
+            groups: Option[List[Group]],
+            entitlements: Option[List[Entitlement]],
+            roles: Option[List[Role]],
+            x509certs: Option[List[X509Certificate]]
+      ) = {
+
+      UserDAO.updateOne(User(userId, baseUser, emails, phoneNumbers, ims, photos, addresses, groups, entitlements, roles, x509certs))
     }
 
     def findOne(userId: String): Option[User] = {
@@ -49,6 +61,11 @@ object User {
       }else{
           None
       }
+    }
+    
+    def findAll(filter: Option[Seq[String]]): List[User] = {
+        val u:List[User] = UserDAO.findAll(filter)
+        u
     }
     
     def removeBaseTraits(userJson: JsValue): JsObject = {

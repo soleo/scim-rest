@@ -14,49 +14,45 @@ import models.User._
 object UserController extends Controller {
 
   def findAll = Action { implicit request =>
-    val filter = request.query.filter
-    val users = User.find(filter)
-    users match {
-        case None => NotFound(Json.obj("error" -> "NOT_FOUND"))
-        case Some(users) => {
-            
-            var resources = JsObject()
-            
-            for(user <- users) {
-                var singleUser = Json.toJson(user)
-                var flattenedJson = User.removeBaseTraits(singleUser)
-                val jsonObject = flattenedJson.as[JsObject]
-                resources += JsObject(jsonObject ++ Json.toJson(user.baseUser).as[JsObject])
-            }
-            
-            Ok(resources)
-        }
+    val filter = request.queryString.get("filter")
+    println(filter)
+    val users = User.findAll(filter)
+   
+    var total: Int = 0
+    var resources = Json.arr()
+    
+    for(user <- users) {
+        user.meta = RequestUtils.addMetaData(user, request)
+        val singleUser = Json.toJson(user)
+        val flattenedJson = User.removeBaseTraits(singleUser)
+        val jsonObject = flattenedJson.as[JsObject]
+        
+        val finalUser = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
+        resources = resources :+ finalUser
+        // Increase Count Now
+        total += 1
     }
+            
+    Ok(
+        Json.obj(
+            "totalResults" -> total,
+            "schemes" -> Json.arr("urn:scim:schemas:core:1.0"),
+            "Resources" -> resources
+        )
+    )
+    
   }
   
   def find(userId : String) = Action { implicit request =>
     
     val user = User.findOne(userId)
     user match {
-        case None => NotFound(Json.obj("error" -> "NOT_FOUND"))
+        case None => NotFound(RequestUtils.notFoundMessage(userId))
         case Some(user) => {
-            val meta: Meta = user.meta match {
-            case Some(m) => {
-              val location = RequestUtils.baseURL+"Users/" + user.id
-              val version = RequestUtils.ETag
-              Meta(m.created, m.lastModified, version, Some(location))
-            }
-            case None => {
-              val location = RequestUtils.baseURL+"Users/" + user.id
-              val version = RequestUtils.ETag
-              Meta(new Date, new Date, version, Some(location))
-            }
-          }
-          
-          user.meta = Some(meta)
+          user.meta = RequestUtils.addMetaData(user, request)
           val response = Json.toJson(user)
           val flattenedJson = User.removeBaseTraits(response)
-          
+    
           // combine results
           val jsonObject = flattenedJson.as[JsObject]
           val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
@@ -67,12 +63,14 @@ object UserController extends Controller {
     }
     
   }
+  
   // RAW JSON -> Transformed JSON -> Case Class -> DB Store -> Case Class -> JSON -> Meta Added
   def add = Action { implicit request =>
     request.body.asJson.map { implicit json =>
       json.validate[BaseUser].map {
         case baseUser => {
           //println(baseUser)
+          // add validation later
           val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
           val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
           val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
@@ -95,20 +93,7 @@ object UserController extends Controller {
                                         roles,
                                         x509certs
                                         )
-          val meta: Meta = fullUser.meta match {
-            case Some(m) => {
-              val location = RequestUtils.baseURL+"Users/" + fullUser.id
-              val version = RequestUtils.ETag
-              Meta(m.created, m.lastModified, version, Some(location))
-            }
-            case None => {
-              val location = RequestUtils.baseURL+"Users/" + fullUser.id
-              val version = RequestUtils.ETag
-              Meta(new Date, new Date, version, Some(location))
-            }
-          }
-          
-          fullUser.meta = Some(meta)
+          fullUser.meta = RequestUtils.addMetaData(fullUser, request)
           //reset password before converting to JSON
           fullUser.baseUser.password = None 
           val response = Json.toJson(fullUser)
@@ -134,7 +119,14 @@ object UserController extends Controller {
   }
 
   def remove(userId : String) = Action { implicit request =>
-    Ok("") 
+    val user = User.findOne(userId)
+    user match {
+        case None => NotFound(RequestUtils.notFoundMessage(userId))
+        case Some(user) => {
+          User.delete(userId)
+          Ok("")
+        }
+    }
   }
 
   // https://gist.github.com/guillaumebort/2328236

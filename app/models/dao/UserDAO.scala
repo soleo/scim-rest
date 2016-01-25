@@ -19,10 +19,9 @@ object UserDAO {
             | WHERE id={userId};
         """.stripMargin).on(
             "userId" -> user.id
-            ).apply().head
+        ).apply().head
 
         result[Int]("numMatches") != 0
-          
       }
   }
   
@@ -150,8 +149,8 @@ object UserDAO {
     }
   }
   
- def findAll(filter: String): List[User] = {
-    DB.withConnection { implicit c =>
+ def findAll(filter: Option[Seq[String]]): List[User] = {
+    DB.withTransaction { implicit c =>
      var results = SQL(
         """
          | SELECT *
@@ -193,7 +192,6 @@ object UserDAO {
             row[Date]("created"),
             row[Date]("lastModified")
             )
-        
         User(row[String]("id"), baseUser, None, None, None, None, None, None, None, None, None, Some(meta))
       }.force.toList
     }
