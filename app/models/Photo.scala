@@ -3,9 +3,7 @@ package models
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
-/**
-  * Created by xinjiang on 1/16/16.
-  */
+
 object Photo {
   //implicit val photoFormat = Json.format[Photo]
    implicit val photoReads: Reads[Photo] = (

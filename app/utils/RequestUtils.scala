@@ -5,6 +5,7 @@ import models.Meta
 import models.User
 import java.util.Date
 import play.api.libs.json._
+import play.api.libs.Codecs
 
 object RequestUtils {
   def secure(request: RequestHeader): Boolean = {
@@ -20,28 +21,38 @@ object RequestUtils {
     // return base URL
     proto + "://" + request.host + "/v1/"
   }
-
-  def ETag(implicit request: RequestHeader): Option[String] = {
-
-    None
+  
+  def generateETAG(meta: Meta): Option[String] = {
+        // Use LastModified for digest
+        val lastModified = meta.lastModified
+        Some("W/\"" + Codecs.sha1(lastModified.toString) + "\"")
   }
   
   // add Location to response Header
-  def addLocation(): Boolean = {
-      true
+  def getLocation(meta: Option[Meta]): String = {
+        meta match {
+            case Some(m) => {
+                m.location.getOrElse("")
+            } 
+            case None => {
+                ""
+            }
+        }
+     
   }
   
   def addMetaData(resourceName: String, id:String, meta: Option[Meta],  request: RequestHeader): Option[Meta] = {
     val finalMeta: Meta = meta match {
             case Some(m) => {
               val location = RequestUtils.baseURL(request) + resourceName + "/" + id
-              val version = RequestUtils.ETag(request)
+              val version = RequestUtils.generateETAG(m)
               Meta(m.created, m.lastModified, version, Some(location))
             }
             case None => {
               val location = RequestUtils.baseURL(request)  + resourceName +"/" + id
-              val version = RequestUtils.ETag(request) 
-              Meta(new Date, new Date, version, Some(location))
+              val today = new Date
+              val version = RequestUtils.generateETAG(Meta(today, today, None, None)) 
+              Meta(today, today, version, Some(location))
             }
     }
           

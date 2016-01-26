@@ -5,9 +5,7 @@ import java.util.Date
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Writes._
-/**
-  * Created by xinjiang on 1/16/16.
-  */
+
 object Meta {
   implicit val metaReads = Json.reads[Meta]
 

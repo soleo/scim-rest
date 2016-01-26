@@ -14,7 +14,6 @@ object GroupController extends Controller {
   def findAll = Action { implicit request =>
     
     val groups = Group.findAll
-   
     var total: Int = 0
     var resources = Json.arr()
     
@@ -36,8 +35,19 @@ object GroupController extends Controller {
     
   }
 
-  def update(groupId : String) = Action { request =>
-    Ok("")
+  def update(groupId : String) = Action { implicit request =>
+    request.body.asJson.map { implicit json =>
+      json.validate[Group].map {
+        case group =>
+        {
+            Ok(Json.toJson(group))
+        }
+      }.recoverTotal{
+        e => BadRequest(JsError.toJson(e))
+      }
+    }.getOrElse {
+      BadRequest("Expecting Json data")
+    }
   }
 
 }

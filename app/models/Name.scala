@@ -3,11 +3,6 @@ package models
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-/**
-  * Created by xinjiang on 1/16/16.
-  */
-
-
 object Name {
   implicit val nameReads: Reads[Name] = (
       (__ \ "formatted").readNullable[String] and

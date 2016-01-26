@@ -36,6 +36,10 @@ object Group {
           }
       }
   }
+  
+  def patch(group: Group): Group = {
+      GroupDAO.patch(group)
+  }
     
 }
 

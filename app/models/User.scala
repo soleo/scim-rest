@@ -25,7 +25,8 @@ object User {
         }
     }
     
-    def add(baseUser: BaseUser, 
+    def add(
+            baseUser: BaseUser, 
             emails: Option[List[Email]], 
             phoneNumbers: Option[List[PhoneNumber]],
             ims: Option[List[Im]],
@@ -87,6 +88,8 @@ object User {
     }
     
     def addGroupInfo(user: User): JsObject = {
+        
+        //@TODO: Need to transfer Json fields names
         val groups: Option[List[Group]] = GroupDAO.findGroupsByUserId(user.id)
         
         //val groupJsonTransformer = 
@@ -121,6 +124,15 @@ object User {
         case _ => transformedUserJson.get
       }
     }
+    
+    def checkConflicts(userName:String) : Boolean = {
+        val user: User = User("", BaseUser(userName))
+        if(UserDAO.exists(user)) {
+            true
+        }else{
+            false
+        }
+    }
 }    
 case class User(
         id: String = "",
@@ -132,8 +144,8 @@ case class User(
         addresses: Option[List[Address]] = None,
         var groups: Option[List[Group]] = None,
         entitlements: Option[List[Entitlement]] = None,
-        roles: Option[Seq[Role]] = None,
-        x509Certificates: Option[Seq[X509Certificate]] = None,
+        roles: Option[List[Role]] = None,
+        x509Certificates: Option[List[X509Certificate]] = None,
         var meta: Option[Meta] = None
     )
  

@@ -10,15 +10,14 @@ import utils.RequestUtils
 import models._
 import models.User._
 
-
 object UserController extends Controller {
 
   def findAll = Action { implicit request =>
     val filter = request.queryString.get("filter")
-    //println(filter)
+    println(request.queryString.toList)
     //@TODO: Parse filter syntax
+    // Only support or, and, co, eq for emails field to do filter
     val users = User.findAll(filter)
-   
     var total: Int = 0
     var resources = Json.arr()
     
@@ -51,7 +50,9 @@ object UserController extends Controller {
     user match {
         case None => NotFound(RequestUtils.notFoundMessage(userId))
         case Some(user) => {
+          
           user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
+          val location = RequestUtils.getLocation(user.meta)
           val response = Json.toJson(user)
           val flattenedJson = User.removeBaseTraits(response)
          
@@ -59,9 +60,12 @@ object UserController extends Controller {
           val jsonObject = flattenedJson.as[JsObject]
           val userGroups = User.addGroupInfo(user)// readOnly
           val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
-         
-          Ok(finalResponse)
-        }
+          val ETag = RequestUtils.generateETAG(user.meta.getOrElse(Meta(new Date, new Date)))
+          Ok(finalResponse).withHeaders(
+                "Location" -> location,
+                ETAG       -> ETag.getOrElse("")
+            )
+        } 
     }
     
   }
@@ -82,9 +86,12 @@ object UserController extends Controller {
           val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
           val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
           val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
-          // @TODO: check for confilicts before adding, return 409 if conficts with current Users eg userName 
-          
-          val fullUser: User = User.add(
+          // @TODO: check for confilicts before adding, return 409 if conficts with current Users e.g userName 
+          val status = User.checkConflicts(baseUser.userName)
+          if(!status) {
+              Conflict("userName Exists Already")
+          }
+          val user: User = User.add(
                                         baseUser, 
                                         emails, 
                                         phoneNumbers,
@@ -97,18 +104,22 @@ object UserController extends Controller {
                                         x509certs
                                         )
         
-          fullUser.meta = RequestUtils.addMetaData("Users", fullUser.id, fullUser.meta,  request)
+          user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
           
           //reset password before converting to JSON
-          fullUser.baseUser.password = None 
-          val response = Json.toJson(fullUser)
+          user.baseUser.password = None 
+          val response = Json.toJson(user)
           val flattenedJson = User.removeBaseTraits(response)
           
           // combine results
           val jsonObject = flattenedJson.as[JsObject]
-          val finalResponse = jsonObject ++ Json.toJson(fullUser.baseUser).as[JsObject]
-
-          Created(finalResponse)
+          val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
+          val location = RequestUtils.getLocation(user.meta)
+          val ETag = RequestUtils.generateETAG(user.meta.getOrElse(Meta(new Date, new Date)))
+          Created(finalResponse).withHeaders(
+                "Location" -> location,
+                 ETAG      -> ETag.getOrElse("")
+            )
             
         }
       }.recoverTotal{
@@ -127,7 +138,7 @@ object UserController extends Controller {
             request.body.asJson.map { implicit json =>
               json.validate[BaseUser].map {
                 case baseUser => {
-                    println(baseUser)
+                    //println(baseUser)
                     val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
                     val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
                     val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
@@ -139,7 +150,7 @@ object UserController extends Controller {
                     val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
                     val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
                     // ignore any read-only attributes and password
-                    val fullUser: User = User.replace(
+                    val user: User = User.replace(
                                         userId,
                                         baseUser, 
                                         emails, 
@@ -152,19 +163,26 @@ object UserController extends Controller {
                                         roles,
                                         x509certs
                                         )
-                    fullUser.meta = RequestUtils.addMetaData("Users", fullUser.id, fullUser.meta, request)
+                    user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
           
                     //reset password before converting to JSON
-                    fullUser.baseUser.password = None 
+                    user.baseUser.password = None 
                     
-                    val response = Json.toJson(fullUser)
+                    val response = Json.toJson(user)
                     val flattenedJson = User.removeBaseTraits(response)
                     // combine results
                     val jsonObject = flattenedJson.as[JsObject]
-                    val userGroups = User.addGroupInfo(fullUser)// readOnly
-                    val finalResponse = jsonObject ++ Json.toJson(fullUser.baseUser).as[JsObject] ++ userGroups
+                    val userGroups = User.addGroupInfo(user)// readOnly
+                    val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
                     
-                    Ok(finalResponse)
+                    val ETag = RequestUtils.generateETAG(user.meta.getOrElse(Meta(new Date, new Date)))
+                    val location = RequestUtils.getLocation(user.meta)
+                    
+                    Ok(finalResponse).withHeaders(
+                            "Location" -> location,
+                            ETAG -> ETag.getOrElse("")
+                    )
+                    
                   
                     
                 }
@@ -183,8 +201,17 @@ object UserController extends Controller {
     user match {
         case None => NotFound(RequestUtils.notFoundMessage(userId))
         case Some(user) => {
+          val meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
+          val location = RequestUtils.getLocation(meta)
+          val ETag = RequestUtils.generateETAG(meta.getOrElse(Meta(new Date, new Date)))
+          
           User.delete(userId)
-          Ok("")
+          
+          Ok("").withHeaders(
+                "Location" -> location,
+                 ETAG      -> ETag.getOrElse("")
+            )
+          
         }
     }
   }

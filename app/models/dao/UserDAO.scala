@@ -53,9 +53,8 @@ object UserDAO {
             x509certs: Option[List[X509Certificate]]
             ) = {
     DB.withTransaction { implicit c =>
-      // Probably a good idea to run a transaction instead of a few sql queries
-      // But going to do separate queries for now
-     val name: Name = user.name.getOrElse( new Name(None, None, None, None, None, None))
+      
+     val name: Name = user.name.getOrElse( Name(None, None, None, None, None, None))
    
      SQL(
      """
@@ -117,7 +116,8 @@ object UserDAO {
              }
              case None => println("No Emails Provided")
          }
-         
+        // TODO: Insert all others into other related tables
+        
         //  user.addresses match {
         //      case Some(addresses) => {
         //          for(address <- addresses) {
@@ -294,10 +294,101 @@ object UserDAO {
         // step 1: get user password field and id 
         // step 2: remove the whole user from database
         // step 3: add current data set to database
-        
+        DB.withTransaction { implicit c => {
+                // Step 1
+                val password = user.baseUser.password.getOrElse("")
+                if (password.length == 0) {
+                    // get old password, because we cannot wipe it out
+                    val oldPassword:Option[String] = SQL(
+                        """
+                         | SELECT  password
+                         | FROM `users`
+                         | WHERE `id` = {userId}
+                         | LIMIT 1;
+                        """.stripMargin).on(
+                        "userId" -> user.id
+                     ).as(SqlParser.get[Option[String]]("password").single)
+                     
+                     user.baseUser.password = oldPassword
+                }
+                // Step 2
+                SQL(
+                    """
+                      | DELETE FROM `users`
+                      | WHERE `id`={userId};
+                    """.stripMargin).on(
+                    "userId" -> user.id
+                ).executeUpdate()
+                // Step 3
+                //UserDAO.create(user.id, user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos,
+                //            user.addresses, user.groups, user.entitlements, user.roles, user.x509Certificates)
+                // a repeat of create function but maybe should be in a util function
+                val name: Name = user.baseUser.name.getOrElse( Name(None, None, None, None, None, None))
+                SQL(
+                     """
+                        | INSERT IGNORE INTO `users` (
+                        | `id`, `externalId`, `username`,
+                        | `formattedName`, `familyName`, `givenName`, `middleName`,
+                        | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
+                        | `profileURL`, `title`, `userType`, `preferredLanguage`,
+                        | `locale`, `timezone`, `active`, `password`
+                        | )
+                        | VALUES
+                        | (
+                        | {userId}, {externalId}, {username},
+                        | {formattedName}, {familyName}, {givenName}, {middleName},
+                        | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
+                        | {profileURL}, {title}, {userType}, {preferredLanguage},
+                        | {locale}, {timezone}, {active}, {password}
+                        | );
+                     """.stripMargin).on(
+                        "userId" -> user.id,
+                        "externalId" -> user.baseUser.externalId,
+                        "username" -> user.baseUser.userName,
+                        "formattedName" -> name.formattedName.getOrElse(""),
+                        "familyName" -> name.familyName.getOrElse(""),
+                        "givenName" -> name.givenName.getOrElse(""),
+                        "middleName" -> name.middleName.getOrElse(""),
+                        "honorificPrefix" -> name.honorificPrefix.getOrElse(""),
+                        "honorificSuffix" -> name.honorificSuffix.getOrElse(""),
+                        "displayName" -> user.baseUser.displayName.getOrElse(""),
+                        "nickname" -> user.baseUser.nickName.getOrElse(""),
+                        "profileURL" -> user.baseUser.profileUrl.getOrElse(""),
+                        "title" -> user.baseUser.title.getOrElse(""),
+                        "userType" -> user.baseUser.userType.getOrElse(""),
+                        "preferredLanguage" -> user.baseUser.preferredLanguage.getOrElse(""),
+                        "locale" -> user.baseUser.locale.getOrElse(""),
+                        "timezone" -> user.baseUser.timezone.getOrElse(""),
+                        "active" -> user.baseUser.active.getOrElse(false),
+                        "password" -> user.baseUser.password.getOrElse("")
+                     ).executeInsert()
+                     user.emails match {
+                         case Some(emails) => {
+                             for(email <- emails) {
+                                 println(email)
+                                 SQL("""
+                                    | INSERT IGNORE INTO `emails` (
+                                    | `userId`, `value`, `type`, `isPrimary` )
+                                    | VALUES(
+                                    | {userId}, {value}, {type}, {primary}
+                                    | )
+                                 """.stripMargin).on(
+                                     "userId" -> user.id,
+                                     "value"  -> email.value,
+                                     "type"   -> email.emailType,
+                                     "primary" -> email.primary.getOrElse(false)
+                                    ).executeInsert()
+                             }
+                         }
+                        case None => println("No Emails Provided")
+                    }
+                    // Should have others inserted as well
+            }
+        }
         
     }else{
         // patch some fields
+        // Not Done Yet.  
     }
   }
   

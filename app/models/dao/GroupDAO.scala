@@ -50,14 +50,23 @@ object GroupDAO {
         if(groups.isEmpty) {
             None
         }else {
-            
             Some(groups)
         }
       }
   }
 
-  def patch(group: Group) = {
-
+  def patch(group: Group) : Group = {
+    DB.withConnection { implicit c =>
+        val grp: Group = SQL(
+                                    """
+                                        | SELECT id AS groupId, displayName
+                                        | FROM `groups`
+                                        | LIMIT 1;
+                                    """.stripMargin).as(groupParser.single)
+        //println(groups)
+        
+        grp
+      }
   }
   
   def findGroupsByUserId(userId: String): Option[List[Group]] = {
