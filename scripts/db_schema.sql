@@ -5,13 +5,14 @@ DROP TABLE IF EXISTS phoneNumbers;
 DROP TABLE IF EXISTS ims;
 DROP TABLE IF EXISTS photos;
 DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS groups_users;
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS entitlements;
 DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS x509Certificates;
 
 CREATE TABLE users (
-    id                varchar(36) PRIMARY KEY,
+    id                varchar(36) not null PRIMARY KEY,
     externalId        varchar(36) not null,
     username          varchar(20) unique not null,
     formattedName     varchar(255),
@@ -31,10 +32,10 @@ CREATE TABLE users (
     active            boolean,
     password          varchar(255),
     created           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    lastModified      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    location          varchar(255) not null,
-    version           varchar(100) not null,
-    gender            varchar(6)
+    lastModified      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    -- location          varchar(255) not null,
+    -- version           varchar(100) not null,
+    -- gender            varchar(6)
 ) ENGINE=InnoDB;
 
 CREATE TABLE emails (
@@ -98,15 +99,21 @@ CREATE TABLE addresses (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+
 CREATE TABLE groups (
+    id            varchar(36) not null PRIMARY KEY, /** UUID of the group **/
+    displayName   varchar(50),
+    type          varchar(20),
+    created           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    lastModified      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE groups_users (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) not null, /** UUID of the group **/
-    display   varchar(50),
-    isPrimary boolean,
-    type      varchar(20),
-    operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    groupId   varchar(36) not null,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (groupId) REFERENCES groups(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE entitlements (
@@ -141,4 +148,5 @@ CREATE TABLE x509Certificates (
     userId    varchar(36) not null,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
 

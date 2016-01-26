@@ -17,13 +17,24 @@ object UserDAO {
   
   def exists(user: User): Boolean =  {
       DB.withConnection { implicit c =>
-        val result = SQL("""
+        val userName = user.baseUser.userName
+        val result = if(userName.length <= 0) {
+            SQL("""
+                | SELECT COUNT(*) as numMatches
+                | FROM `users`
+                | WHERE id={userId};
+            """.stripMargin).on(
+                "userId" -> user.id
+            ).apply().head
+        }else{
+           SQL("""
             | SELECT COUNT(*) as numMatches
             | FROM `users`
-            | WHERE id={userId};
-        """.stripMargin).on(
-            "userId" -> user.id
-        ).apply().head
+            | WHERE username={userName};
+            """.stripMargin).on(
+                "userName" -> userName
+            ).apply().head
+        }
 
         result[Int]("numMatches") != 0
       }
@@ -45,7 +56,7 @@ object UserDAO {
       // Probably a good idea to run a transaction instead of a few sql queries
       // But going to do separate queries for now
      val name: Name = user.name.getOrElse( new Name(None, None, None, None, None, None))
-    // val basicTraits: BasicTrait = user.basicTraits.getOrElse(new BasicTrait())
+   
      SQL(
      """
         | INSERT IGNORE INTO `users` (
@@ -166,12 +177,12 @@ object UserDAO {
 
       results.map { row =>
         val name = Name(
-                      StringUtils.optionalString(row[String]("formattedName")), 
-                      StringUtils.optionalString(row[String]("familyName")),
-                      StringUtils.optionalString(row[String]("givenName")),
-                      StringUtils.optionalString(row[String]("middleName")),
-                      StringUtils.optionalString(row[String]("honorificPrefix")),
-                      StringUtils.optionalString(row[String]("honorificSuffix"))
+                      StringUtils.removeEmptyString(row[Option[String]]("formattedName")), 
+                      StringUtils.removeEmptyString(row[Option[String]]("familyName")),
+                      StringUtils.removeEmptyString(row[Option[String]]("givenName")),
+                      StringUtils.removeEmptyString(row[Option[String]]("middleName")),
+                      StringUtils.removeEmptyString(row[Option[String]]("honorificPrefix")),
+                      StringUtils.removeEmptyString(row[Option[String]]("honorificSuffix"))
                       )
         val nameField = name match{
             case Name(None, None, None, None, None, None) => None
@@ -179,17 +190,17 @@ object UserDAO {
         }
         val baseUser = BaseUser(
             row[String]("username"), 
-            StringUtils.optionalString(row[String]("externalId")) ,
+            StringUtils.removeEmptyString(row[Option[String]]("externalId")) ,
             nameField,
-            StringUtils.optionalString(row[String]("displayName")),
-            StringUtils.optionalString(row[String]("nickname")),
-            StringUtils.optionalString(row[String]("profileURL")),
-            StringUtils.optionalString(row[String]("title")),
-            StringUtils.optionalString(row[String]("userType")),
-            StringUtils.optionalString(row[String]("preferredLanguage")),
-            StringUtils.optionalString(row[String]("locale")),
-            StringUtils.optionalString(row[String]("timezone")),
-            StringUtils.optionalBoolean(row[Boolean]("active")),
+            StringUtils.removeEmptyString(row[Option[String]]("displayName")),
+            StringUtils.removeEmptyString(row[Option[String]]("nickname")),
+            StringUtils.removeEmptyString(row[Option[String]]("profileURL")),
+            StringUtils.removeEmptyString(row[Option[String]]("title")),
+            StringUtils.removeEmptyString(row[Option[String]]("userType")),
+            StringUtils.removeEmptyString(row[Option[String]]("preferredLanguage")),
+            StringUtils.removeEmptyString(row[Option[String]]("locale")),
+            StringUtils.removeEmptyString(row[Option[String]]("timezone")),
+            (row[Option[Boolean]]("active")),
             None// Leave password alone
             )
         val meta = Meta(
@@ -230,12 +241,12 @@ object UserDAO {
 
       results.map { row =>
         val name = Name(
-                      StringUtils.optionalString(row[String]("formattedName")), 
-                      StringUtils.optionalString(row[String]("familyName")),
-                      StringUtils.optionalString(row[String]("givenName")),
-                      StringUtils.optionalString(row[String]("middleName")),
-                      StringUtils.optionalString(row[String]("honorificPrefix")),
-                      StringUtils.optionalString(row[String]("honorificSuffix"))
+                      StringUtils.removeEmptyString(row[Option[String]]("formattedName")), 
+                      StringUtils.removeEmptyString(row[Option[String]]("familyName")),
+                      StringUtils.removeEmptyString(row[Option[String]]("givenName")),
+                      StringUtils.removeEmptyString(row[Option[String]]("middleName")),
+                      StringUtils.removeEmptyString(row[Option[String]]("honorificPrefix")),
+                      StringUtils.removeEmptyString(row[Option[String]]("honorificSuffix"))
                       )
         val nameField = name match{
             case Name(None, None, None, None, None, None) => None
@@ -243,17 +254,17 @@ object UserDAO {
         }
         val baseUser = BaseUser(
             row[String]("username"), 
-            StringUtils.optionalString(row[String]("externalId")) ,
+            StringUtils.removeEmptyString(row[Option[String]]("externalId")) ,
             nameField,
-            StringUtils.optionalString(row[String]("displayName")),
-            StringUtils.optionalString(row[String]("nickname")),
-            StringUtils.optionalString(row[String]("profileURL")),
-            StringUtils.optionalString(row[String]("title")),
-            StringUtils.optionalString(row[String]("userType")),
-            StringUtils.optionalString(row[String]("preferredLanguage")),
-            StringUtils.optionalString(row[String]("locale")),
-            StringUtils.optionalString(row[String]("timezone")),
-            StringUtils.optionalBoolean(row[Boolean]("active")),
+            StringUtils.removeEmptyString(row[Option[String]]("displayName")),
+            StringUtils.removeEmptyString(row[Option[String]]("nickname")),
+            StringUtils.removeEmptyString(row[Option[String]]("profileURL")),
+            StringUtils.removeEmptyString(row[Option[String]]("title")),
+            StringUtils.removeEmptyString(row[Option[String]]("userType")),
+            StringUtils.removeEmptyString(row[Option[String]]("preferredLanguage")),
+            StringUtils.removeEmptyString(row[Option[String]]("locale")),
+            StringUtils.removeEmptyString(row[Option[String]]("timezone")),
+            (row[Option[Boolean]]("active")),
             None// Leave password alone
             )
         val meta = Meta(
@@ -289,6 +300,8 @@ object UserDAO {
         // patch some fields
     }
   }
+  
+ 
   
   
 

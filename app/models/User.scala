@@ -3,7 +3,8 @@ package models
 import models.User._
 import models._
 import models.dao.UserDAO
-//import models.Group
+import models.dao.GroupDAO
+
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
@@ -45,7 +46,8 @@ object User {
       UserDAO.delete(User(userId))
     }
 
-    def replace(userId: String,
+    def replace(
+            userId: String,
             baseUser: BaseUser, 
             emails: Option[List[Email]], 
             phoneNumbers: Option[List[PhoneNumber]],
@@ -81,8 +83,29 @@ object User {
     }
     
     def findAll(filter: Option[Seq[String]]): List[User] = {
-        val u:List[User] = UserDAO.findAll(filter)
-        u
+        UserDAO.findAll(filter)
+    }
+    
+    def addGroupInfo(user: User): JsObject = {
+        val groups: Option[List[Group]] = GroupDAO.findGroupsByUserId(user.id)
+        
+        //val groupJsonTransformer = 
+        //(__ \\ 'value ).json.copyFrom((__ \ 'id).json.pick) andKeep
+        //(__ \\ 'display).json.copyFrom((__ \ 'displayName).json.pick)
+        
+        groups match{
+           case Some(grps) => {
+               
+               val grpsJson = Json.toJson(grps)
+               Json.obj("groups" -> grpsJson)
+            //   val transformedJson = grpsJson.trasform(groupJsonTransformer)
+            //     transformedJson match {
+            //         case JsError(_) => Json.obj()
+            //         case _ => Json.obj("groups" -> transformedJson.get)
+            //     }
+           }
+           case None => Json.obj()
+        }
     }
     
     def removeBaseTraits(userJson: JsValue): JsObject = {
@@ -91,8 +114,7 @@ object User {
       (__ ).json.pickBranch(
           (__ \ 'baseUser).json.prune
       ) 
-       
-       
+      
       val transformedUserJson = userJson.transform(jsonTransformer)
       transformedUserJson match {
         case JsError(_) => Json.obj()
@@ -108,7 +130,7 @@ case class User(
         ims: Option[List[Im]] = None,
         photos: Option[List[Photo]] = None,
         addresses: Option[List[Address]] = None,
-        groups: Option[List[Group]] = None,
+        var groups: Option[List[Group]] = None,
         entitlements: Option[List[Entitlement]] = None,
         roles: Option[Seq[Role]] = None,
         x509Certificates: Option[Seq[X509Certificate]] = None,

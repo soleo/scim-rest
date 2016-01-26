@@ -15,19 +15,21 @@ object UserController extends Controller {
 
   def findAll = Action { implicit request =>
     val filter = request.queryString.get("filter")
-    println(filter)
+    //println(filter)
+    //@TODO: Parse filter syntax
     val users = User.findAll(filter)
    
     var total: Int = 0
     var resources = Json.arr()
     
     for(user <- users) {
-        user.meta = RequestUtils.addMetaData(user, request)
+        user.meta = RequestUtils.addMetaData("Users", user.id, user.meta,  request)
         val singleUser = Json.toJson(user)
         val flattenedJson = User.removeBaseTraits(singleUser)
         val jsonObject = flattenedJson.as[JsObject]
+        val userGroups = User.addGroupInfo(user)// readOnly
+        var finalUser = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
         
-        val finalUser = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
         resources = resources :+ finalUser
         // Increase Count Now
         total += 1
@@ -49,14 +51,15 @@ object UserController extends Controller {
     user match {
         case None => NotFound(RequestUtils.notFoundMessage(userId))
         case Some(user) => {
-          user.meta = RequestUtils.addMetaData(user, request)
+          user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
           val response = Json.toJson(user)
           val flattenedJson = User.removeBaseTraits(response)
          
           // combine results
           val jsonObject = flattenedJson.as[JsObject]
-          val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
-
+          val userGroups = User.addGroupInfo(user)// readOnly
+          val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
+         
           Ok(finalResponse)
         }
     }
@@ -75,7 +78,7 @@ object UserController extends Controller {
           val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
           val photos: Option[List[Photo]] = (json \ "photos").asOpt[List[Photo]]
           val addresses: Option[List[Address]] = (json \ "addresses").asOpt[List[Address]]
-          val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
+          //val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
           val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
           val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
           val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
@@ -88,13 +91,13 @@ object UserController extends Controller {
                                         ims,
                                         photos,
                                         addresses,
-                                        groups,
+                                        None, // Group
                                         entitlements,
                                         roles,
                                         x509certs
                                         )
         
-          fullUser.meta = RequestUtils.addMetaData(fullUser, request)
+          fullUser.meta = RequestUtils.addMetaData("Users", fullUser.id, fullUser.meta,  request)
           
           //reset password before converting to JSON
           fullUser.baseUser.password = None 
@@ -124,13 +127,14 @@ object UserController extends Controller {
             request.body.asJson.map { implicit json =>
               json.validate[BaseUser].map {
                 case baseUser => {
-                    //println(baseUser)
+                    println(baseUser)
                     val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
                     val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
                     val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
                     val photos: Option[List[Photo]] = (json \ "photos").asOpt[List[Photo]]
                     val addresses: Option[List[Address]] = (json \ "addresses").asOpt[List[Address]]
-                    val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
+                    // groups are readOnly
+                    //val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
                     val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
                     val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
                     val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
@@ -143,22 +147,26 @@ object UserController extends Controller {
                                         ims,
                                         photos,
                                         addresses,
-                                        groups,
+                                        None,
                                         entitlements,
                                         roles,
                                         x509certs
                                         )
-                    fullUser.meta = RequestUtils.addMetaData(fullUser, request)
+                    fullUser.meta = RequestUtils.addMetaData("Users", fullUser.id, fullUser.meta, request)
           
                     //reset password before converting to JSON
                     fullUser.baseUser.password = None 
+                    
                     val response = Json.toJson(fullUser)
                     val flattenedJson = User.removeBaseTraits(response)
-          
                     // combine results
                     val jsonObject = flattenedJson.as[JsObject]
-                    val finalResponse = jsonObject ++ Json.toJson(fullUser.baseUser).as[JsObject]
+                    val userGroups = User.addGroupInfo(fullUser)// readOnly
+                    val finalResponse = jsonObject ++ Json.toJson(fullUser.baseUser).as[JsObject] ++ userGroups
+                    
                     Ok(finalResponse)
+                  
+                    
                 }
               }.recoverTotal{
                 e => BadRequest(JsError.toJson(e))

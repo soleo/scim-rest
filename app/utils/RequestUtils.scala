@@ -26,22 +26,28 @@ object RequestUtils {
     None
   }
   
-  def addMetaData(user:User, request: RequestHeader): Option[Meta] = {
-    val meta: Meta = user.meta match {
+  // add Location to response Header
+  def addLocation(): Boolean = {
+      true
+  }
+  
+  def addMetaData(resourceName: String, id:String, meta: Option[Meta],  request: RequestHeader): Option[Meta] = {
+    val finalMeta: Meta = meta match {
             case Some(m) => {
-              val location = RequestUtils.baseURL(request) + "Users/" + user.id
+              val location = RequestUtils.baseURL(request) + resourceName + "/" + id
               val version = RequestUtils.ETag(request)
               Meta(m.created, m.lastModified, version, Some(location))
             }
             case None => {
-              val location = RequestUtils.baseURL(request)  + "Users/" + user.id
+              val location = RequestUtils.baseURL(request)  + resourceName +"/" + id
               val version = RequestUtils.ETag(request) 
               Meta(new Date, new Date, version, Some(location))
             }
     }
           
-    Some(meta)
+    Some(finalMeta)
   }
+  
   
   def notFoundMessage(id: String): JsObject = {
       Json.obj(
