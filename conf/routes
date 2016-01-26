@@ -8,13 +8,14 @@ GET     /ping                       controllers.Application.ping
 GET     /db                         controllers.Application.db
 
 # API Endpoints
-
+# Users
 GET     /v1/Users                   controllers.UserController.findAll
 GET     /v1/Users/:userId           controllers.UserController.find(userId : String)
 POST    /v1/Users                   controllers.UserController.add
 PUT     /v1/Users/:userId           controllers.UserController.replace(userId : String)
 DELETE  /v1/Users/:userId           controllers.UserController.remove(userId : String)
 
+# Groups
 GET     /v1/Groups                  controllers.GroupController.findAll
 PATCH   /v1/Groups/:groupId         controllers.GroupController.update(groupId : String)
 

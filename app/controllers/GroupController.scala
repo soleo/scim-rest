@@ -9,7 +9,7 @@ import play.api.db._
 import models.Group
 import models.Meta
 
-object GroupController extends Controller {
+class GroupController extends Controller {
 
   def findAll = Action { implicit request =>
     

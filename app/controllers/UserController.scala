@@ -10,7 +10,7 @@ import utils.RequestUtils
 import models._
 import models.User._
 
-object UserController extends Controller {
+class UserController extends Controller {
 
   def findAll = Action { implicit request =>
     val filter = request.queryString.get("filter")
