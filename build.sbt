@@ -1,6 +1,6 @@
 name := """scim-rest"""
 
-version := "1.0-SNAPSHOT"
+version := "1.0.0"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -19,8 +19,9 @@ libraryDependencies += evolutions
 
 libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ )
 
-
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 routesGenerator := InjectedRoutesGenerator
 
 fork in run := true
+
+herokuAppName in Compile := "pacific-beach-4736"

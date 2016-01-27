@@ -83,29 +83,21 @@ object User {
       }
     }
     
-    def findAll(filter: Option[Seq[String]]): List[User] = {
+    def findAll(filter: Option[String]): List[User] = {
         UserDAO.findAll(filter)
     }
     
     def addGroupInfo(user: User): JsObject = {
         
-        //@TODO: Need to transfer Json fields names
         val groups: Option[List[Group]] = GroupDAO.findGroupsByUserId(user.id)
-        
-        //val groupJsonTransformer = 
-        //(__ \\ 'value ).json.copyFrom((__ \ 'id).json.pick) andKeep
-        //(__ \\ 'display).json.copyFrom((__ \ 'displayName).json.pick)
-        
+
         groups match{
            case Some(grps) => {
-               
-               val grpsJson = Json.toJson(grps)
+              val grpsRemapped = for ( grp <- grps ) 
+                                 yield Map( "value" -> grp.id, "display" -> grp.displayName)
+             
+              val grpsJson = Json.toJson(grpsRemapped)
                Json.obj("groups" -> grpsJson)
-            //   val transformedJson = grpsJson.trasform(groupJsonTransformer)
-            //     transformedJson match {
-            //         case JsError(_) => Json.obj()
-            //         case _ => Json.obj("groups" -> transformedJson.get)
-            //     }
            }
            case None => Json.obj()
         }

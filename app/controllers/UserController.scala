@@ -13,10 +13,20 @@ import models.User._
 class UserController extends Controller {
 
   def findAll = Action { implicit request =>
-    val filter = request.queryString.get("filter")
-    println(request.queryString.toList)
-    //@TODO: Parse filter syntax
-    // Only support or, and, co, eq for emails field to do filter
+   
+    val couldFilter = request.queryString.get("filter").isDefined && request.queryString("filter").toString().contains("emails") 
+    
+    val filter = if(couldFilter) {
+        //@TODO: Parse filter syntax
+        // Only support or, and, co, eq for emails field
+        //println(s"Can Filter Emails")
+        
+        Some(request.queryString.get("filter").get.toString())
+    }else{
+        None
+    }
+
+   
     val users = User.findAll(filter)
     var total: Int = 0
     var resources = Json.arr()
@@ -70,7 +80,7 @@ class UserController extends Controller {
     
   }
   
-  // RAW JSON -> Transformed JSON -> Case Class -> DB Store -> Case Class -> JSON -> Meta Added
+  // RAW JSON -> Transformed JSON -> O-O -> DB Store -> O-O -> JSON -> Meta Added
   def add = Action { implicit request =>
     request.body.asJson.map { implicit json =>
       json.validate[BaseUser].map {

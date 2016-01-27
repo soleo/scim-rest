@@ -11,9 +11,11 @@ import java.util.Date
 
 object UserDAO {
   
-  val emailParser = str("value") ~ str("emailType") ~get[Boolean]("isPrimary") map {
+  val emailParser = str("value") ~ str("emailType") ~ get[Boolean]("isPrimary") map {
       case value ~ emailType ~ isPrimary  => Email(value, emailType, StringUtils.optionalBoolean(isPrimary))
   }
+  
+  
   
   def exists(user: User): Boolean =  {
       DB.withConnection { implicit c =>
@@ -164,7 +166,7 @@ object UserDAO {
     }
   }
   
- def findAll(filter: Option[Seq[String]]): List[User] = {
+ def findAll(filter: Option[String]): List[User] = {
     DB.withTransaction { implicit c =>
      var results = SQL(
         """

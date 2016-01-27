@@ -17,7 +17,7 @@ class GroupController extends Controller {
     var total: Int = 0
     var resources = Json.arr()
     
-    for(group <- groups) {
+    for(group <- groups){
         //group.meta = RequestUtils.addMetaData("Groups", group.id, group.meta, request)
         var groupJsonObj = Json.toJson(group) 
         resources = resources :+ groupJsonObj

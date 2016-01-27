@@ -23,7 +23,8 @@ object RequestUtils {
   }
   
   def generateETAG(meta: Meta): Option[String] = {
-        // Use LastModified for digest
+        // Use LastModified for digest 
+        // A better way to do it should be use all fields involved in the document and created a digest
         val lastModified = meta.lastModified
         Some("W/\"" + Codecs.sha1(lastModified.toString) + "\"")
   }
