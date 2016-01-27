@@ -12,9 +12,10 @@ VALUES
 
 INSERT IGNORE INTO `emails` (
     `userId`, `value`, `type`, `isPrimary`
-)VALUES(
-    '2819c223-7f76-453a-919d-413861904646', 'shaoxinjiang@gmail.com' ,'work', true
-);
+)VALUES
+('2819c223-7f76-453a-919d-413861904646', 'shaoxinjiang@gmail.com' ,'work', true),
+('2819c223-7f76-453a-919d-413861904646', 'xinjiang.shao@gmail.com' ,'personal', false)
+;
 
 INSERT IGNORE INTO `groups` (
     `id`, `displayName`

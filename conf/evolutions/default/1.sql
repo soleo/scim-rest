@@ -31,7 +31,7 @@ CREATE TABLE emails (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE phoneNumbers (
@@ -42,7 +42,7 @@ CREATE TABLE phoneNumbers (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE ims (
@@ -53,7 +53,7 @@ CREATE TABLE ims (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE photos (
@@ -64,7 +64,7 @@ CREATE TABLE photos (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE addresses (
@@ -81,7 +81,7 @@ CREATE TABLE addresses (
     postalCode    varchar(10),
     country       char(2),
     userId        varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 
@@ -97,8 +97,8 @@ CREATE TABLE groups_users (
     id        SERIAL PRIMARY KEY,
     userId    varchar(36) not null,
     groupId   varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (groupId) REFERENCES groups(id)
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (groupId) REFERENCES groups(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE entitlements (
@@ -109,7 +109,7 @@ CREATE TABLE entitlements (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE roles (
@@ -120,7 +120,7 @@ CREATE TABLE roles (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE x509Certificates (
@@ -131,7 +131,7 @@ CREATE TABLE x509Certificates (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 INSERT IGNORE INTO `users` (
@@ -166,7 +166,6 @@ INSERT IGNORE INTO `groups_users` (
 
 # --- !Downs
 DROP TABLE groups_users;
-DROP TABLE users;
 DROP TABLE emails;
 DROP TABLE phoneNumbers;
 DROP TABLE ims;
@@ -176,4 +175,5 @@ DROP TABLE groups;
 DROP TABLE entitlements;
 DROP TABLE roles;
 DROP TABLE x509Certificates;
+DROP TABLE users;
 
