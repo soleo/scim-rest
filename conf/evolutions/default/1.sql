@@ -165,13 +165,13 @@ INSERT IGNORE INTO `groups_users` (
 );
 
 # --- !Downs
+DROP TABLE groups_users;
 DROP TABLE users;
 DROP TABLE emails;
 DROP TABLE phoneNumbers;
 DROP TABLE ims;
 DROP TABLE photos;
 DROP TABLE addresses;
-DROP TABLE groups_users;
 DROP TABLE groups;
 DROP TABLE entitlements;
 DROP TABLE roles;
