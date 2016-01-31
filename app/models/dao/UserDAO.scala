@@ -55,49 +55,9 @@ object UserDAO {
             ) = {
     DB.withTransaction { implicit c =>
       
-         val name: Name = user.name.getOrElse(Name(None, None, None, None, None, None))
-         val m: Meta = meta.getOrElse(Meta(new Date, new Date, None, None, None))
-         SQL(
-         """
-            | INSERT IGNORE INTO `users` (
-            | `id`, `externalId`, `username`,
-            | `formattedName`, `familyName`, `givenName`, `middleName`,
-            | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
-            | `profileURL`, `title`, `userType`, `preferredLanguage`,
-            | `locale`, `timezone`, `active`, `password`, `created`, `lastModified`
-            | )
-            | VALUES
-            | (
-            | {userId}, {externalId}, {username},
-            | {formattedName}, {familyName}, {givenName}, {middleName},
-            | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
-            | {profileURL}, {title}, {userType}, {preferredLanguage},
-            | {locale}, {timezone}, {active}, {password}, {created}, {lastModified}
-            | );
-         """.stripMargin).on(
-            "userId" -> id,
-            "externalId" -> user.externalId,
-            "username" -> user.userName,
-            "formattedName" -> name.formatted,
-            "familyName" -> name.familyName,
-            "givenName" -> name.givenName,
-            "middleName" -> name.middleName,
-            "honorificPrefix" -> name.honorificPrefix,
-            "honorificSuffix" -> name.honorificSuffix,
-            "displayName" -> user.displayName,
-            "nickname" -> user.nickName,
-            "profileURL" -> user.profileUrl,
-            "title" -> user.title,
-            "userType" -> user.userType,
-            "preferredLanguage" -> user.preferredLanguage,
-            "locale" -> user.locale,
-            "timezone" -> user.timezone,
-            "active" -> user.active.getOrElse(false),
-            "password" -> user.password,
-            "created" -> m.created,
-            "lastModified" -> m.lastModified
-         ).executeInsert()
-        
+        val name: Name = user.name.getOrElse(Name(None, None, None, None, None, None))
+        val m: Meta = meta.getOrElse(Meta(new Date, new Date, None, None, None))
+        // insert all other info first
         addresses match {
             case Some(addrs) =>
                 for( addr <- addrs )
@@ -109,7 +69,7 @@ object UserDAO {
                     | VALUES(
                     | {userId}, {type}, {streetAddress}, {locality}, 
                     | {region}, {postalCode}, {country}, {formatted}, {primary}
-                    | )
+                    | );
                     """.stripMargin).on(
                              "userId" -> id,
                              "type" -> addr.`type`,
@@ -122,6 +82,7 @@ object UserDAO {
                              "primary" -> addr.primary.getOrElse(false)
                     ).executeInsert()
                 }
+            case None => println("Do Nothing")
         }
         
         emails match {
@@ -170,7 +131,47 @@ object UserDAO {
         
             case None => println("Do Nothing")
         }
-        
+        // add base user info finally
+        SQL(
+         """
+            | INSERT IGNORE INTO `users` (
+            | `id`, `externalId`, `username`,
+            | `formattedName`, `familyName`, `givenName`, `middleName`,
+            | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
+            | `profileURL`, `title`, `userType`, `preferredLanguage`,
+            | `locale`, `timezone`, `active`, `password`, `created`, `lastModified`
+            | )
+            | VALUES
+            | (
+            | {userId}, {externalId}, {username},
+            | {formattedName}, {familyName}, {givenName}, {middleName},
+            | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
+            | {profileURL}, {title}, {userType}, {preferredLanguage},
+            | {locale}, {timezone}, {active}, {password}, {created}, {lastModified}
+            | );
+         """.stripMargin).on(
+            "userId" -> id,
+            "externalId" -> user.externalId,
+            "username" -> user.userName,
+            "formattedName" -> name.formatted,
+            "familyName" -> name.familyName,
+            "givenName" -> name.givenName,
+            "middleName" -> name.middleName,
+            "honorificPrefix" -> name.honorificPrefix,
+            "honorificSuffix" -> name.honorificSuffix,
+            "displayName" -> user.displayName,
+            "nickname" -> user.nickName,
+            "profileURL" -> user.profileUrl,
+            "title" -> user.title,
+            "userType" -> user.userType,
+            "preferredLanguage" -> user.preferredLanguage,
+            "locale" -> user.locale,
+            "timezone" -> user.timezone,
+            "active" -> user.active.getOrElse(false),
+            "password" -> user.password,
+            "created" -> m.created,
+            "lastModified" -> m.lastModified
+         ).executeInsert()
          
          
     }
@@ -323,7 +324,7 @@ object UserDAO {
  }
 
   def updateOne(user: User, replace: Boolean = false) = {
-    if(replace) {
+        if(replace) {
         // replace whole user
         // Note: replace password if exsits, otherwise remain as old 
         // step 1: get user password field and id 
@@ -333,7 +334,7 @@ object UserDAO {
                 // Step 1
                 val password = user.baseUser.password.getOrElse("")
                 if (password.length == 0) {
-                    // get old password, because we cannot wipe it out
+                    // get old password , because we cannot wipe it out
                     val oldPassword:Option[String] = SQL(
                         """
                          | SELECT  password
@@ -359,93 +360,143 @@ object UserDAO {
                 //            user.addresses, user.groups, user.entitlements, user.roles, user.x509Certificates)
                 // a repeat of create function but maybe should be in a util function
                 val name: Name = user.baseUser.name.getOrElse( Name(None, None, None, None, None, None))
-                SQL(
-                     """
-                        | INSERT IGNORE INTO `users` (
-                        | `id`, `externalId`, `username`,
-                        | `formattedName`, `familyName`, `givenName`, `middleName`,
-                        | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
-                        | `profileURL`, `title`, `userType`, `preferredLanguage`,
-                        | `locale`, `timezone`, `active`, `password`
-                        | )
-                        | VALUES
-                        | (
-                        | {userId}, {externalId}, {username},
-                        | {formattedName}, {familyName}, {givenName}, {middleName},
-                        | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
-                        | {profileURL}, {title}, {userType}, {preferredLanguage},
-                        | {locale}, {timezone}, {active}, {password}
-                        | );
-                     """.stripMargin).on(
-                        "userId" -> user.id,
-                        "externalId" -> user.baseUser.externalId,
-                        "username" -> user.baseUser.userName,
-                        "formattedName" -> name.formatted.getOrElse(""),
-                        "familyName" -> name.familyName.getOrElse(""),
-                        "givenName" -> name.givenName.getOrElse(""),
-                        "middleName" -> name.middleName.getOrElse(""),
-                        "honorificPrefix" -> name.honorificPrefix.getOrElse(""),
-                        "honorificSuffix" -> name.honorificSuffix.getOrElse(""),
-                        "displayName" -> user.baseUser.displayName.getOrElse(""),
-                        "nickname" -> user.baseUser.nickName.getOrElse(""),
-                        "profileURL" -> user.baseUser.profileUrl.getOrElse(""),
-                        "title" -> user.baseUser.title.getOrElse(""),
-                        "userType" -> user.baseUser.userType.getOrElse(""),
-                        "preferredLanguage" -> user.baseUser.preferredLanguage.getOrElse(""),
-                        "locale" -> user.baseUser.locale.getOrElse(""),
-                        "timezone" -> user.baseUser.timezone.getOrElse(""),
-                        "active" -> user.baseUser.active.getOrElse(false),
-                        "password" -> user.baseUser.password.getOrElse("")
-                     ).executeInsert()
-                     user.emails match {
-                         case Some(emails) => {
-                             for(email <- emails) {
-                                 println(email)
-                                 SQL("""
-                                    | INSERT IGNORE INTO `emails` (
-                                    | `userId`, `value`, `type`, `isPrimary` )
-                                    | VALUES(
-                                    | {userId}, {value}, {type}, {primary}
-                                    | )
-                                 """.stripMargin).on(
+                val m: Meta = user.meta.getOrElse(Meta(new Date, new Date, None, None, None))
+                user.addresses match {
+                    case Some(addrs) =>
+                        for( addr <- addrs )
+                        { 
+                            SQL("""
+                            | INSERT IGNORE INTO `addresses` (
+                            | `userId`, `type`,`streetAddress`, `locality`, 
+                            | `region`, `postalCode`, `country`, `formatted`, `isPrimary` )
+                            | VALUES(
+                            | {userId}, {type}, {streetAddress}, {locality}, 
+                            | {region}, {postalCode}, {country}, {formatted}, {primary}
+                            | );
+                            """.stripMargin).on(
                                      "userId" -> user.id,
-                                     "value"  -> email.value,
-                                     "type"   -> email.`type`,
-                                     "primary" -> email.primary.getOrElse(false)
-                                    ).executeInsert()
-                             }
-                         }
-                        case None => println("No Emails Provided")
-                    }
-                    // Should have others inserted as well
+                                     "type" -> addr.`type`,
+                                     "streetAddress"  -> addr.streetAddress,
+                                     "locality" -> addr.locality,
+                                     "region" -> addr.region,
+                                     "postalCode" -> addr.postalCode,
+                                     "country" -> addr.country,
+                                     "formatted" -> addr.`formatted`,
+                                     "primary" -> addr.primary.getOrElse(false)
+                            ).executeInsert()
+                        }
+                    case None => println("Do Nothing")
+                }
+                
+                user.emails match {
+                    case Some(emails) =>
+                        for (email <- emails) 
+                            UserDAO.insertPluralAttributes("emails", user.id, email.value, email.`type`, email.primary).executeInsert()
+                    case None => println("Do Nothing")
+                }
+                user.phoneNumbers match {
+                    case Some(phoneNumbers) => 
+                        for(phoneNumber <- phoneNumbers) 
+                            UserDAO.insertPluralAttributes("phoneNumbers", user.id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary).executeInsert()
+                    case None => println("Do Nothing")
+                }
+                user.ims match {
+                    case Some(ims) => 
+                        for(im <- ims) 
+                            UserDAO.insertPluralAttributes("ims", user.id, im.value, im.`type`, im.primary).executeInsert()
+                    case None => println("Do Nothing")
+                }
+                user.photos match {
+                    case Some(photos) =>
+                        for(photo <- photos)
+                            UserDAO.insertPluralAttributes("photos", user.id, photo.value, photo.`type`, photo.primary).executeInsert()
+                
+                    case None => println("Do Nothing")
+                }
+                user.entitlements match {
+                    case Some(entitlements) =>
+                        for(entitlement <- entitlements) 
+                            UserDAO.insertPluralAttributes("entitlements", user.id, entitlement.value, entitlement.`type`, entitlement.primary).executeInsert()
+                
+                    case None => println("Do Nothing")
+                }
+                user.roles match {
+                    case Some(roles) =>
+                        for(role <- roles) 
+                            UserDAO.insertPluralAttributes("roles", user.id, role.value, role.`type`, role.primary).executeInsert()
+                
+                    case None => println("Do Nothing")
+                }
+                user.x509Certificates match {
+                    case Some(x509Certificates) =>
+                        for(x509Certificate <- x509Certificates)
+                            UserDAO.insertPluralAttributes("x509Certificates", user.id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary).executeInsert()
+                
+                    case None => println("Do Nothing")
+                }
+                SQL(
+                 """
+                    | INSERT IGNORE INTO `users` (
+                    | `id`, `externalId`, `username`,
+                    | `formattedName`, `familyName`, `givenName`, `middleName`,
+                    | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
+                    | `profileURL`, `title`, `userType`, `preferredLanguage`,
+                    | `locale`, `timezone`, `active`, `password`, `created`, `lastModified`
+                    | )
+                    | VALUES
+                    | (
+                    | {userId}, {externalId}, {username},
+                    | {formattedName}, {familyName}, {givenName}, {middleName},
+                    | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
+                    | {profileURL}, {title}, {userType}, {preferredLanguage},
+                    | {locale}, {timezone}, {active}, {password}, {created}, {lastModified}
+                    | );
+                 """.stripMargin).on(
+                    "userId" -> user.id,
+                    "externalId" -> user.baseUser.externalId,
+                    "username" -> user.baseUser.userName,
+                    "formattedName" -> name.formatted,
+                    "familyName" -> name.familyName,
+                    "givenName" -> name.givenName,
+                    "middleName" -> name.middleName,
+                    "honorificPrefix" -> name.honorificPrefix,
+                    "honorificSuffix" -> name.honorificSuffix,
+                    "displayName" -> user.baseUser.displayName,
+                    "nickname" -> user.baseUser.nickName,
+                    "profileURL" -> user.baseUser.profileUrl,
+                    "title" -> user.baseUser.title,
+                    "userType" -> user.baseUser.userType,
+                    "preferredLanguage" -> user.baseUser.preferredLanguage,
+                    "locale" -> user.baseUser.locale,
+                    "timezone" -> user.baseUser.timezone,
+                    "active" -> user.baseUser.active.getOrElse(false),
+                    "password" -> user.baseUser.password,
+                    "created" -> m.created,
+                    "lastModified" -> m.lastModified
+                 ).executeInsert()
             }
         }
         
-    }else{
-        // patch some fields
-        // Not Done Yet.  
+        }else{
+            // patch some fields
+            // Not Done Yet.  
+        }
     }
-  }
+    
     def insertPluralAttributes(tableName: String, 
                              userId: String, 
-                             value: String, `type`: String, 
-                             primary: Option[Boolean]) = {
+                             value: String,
+                             attributeType: String, 
+                             primary: Option[Boolean] = None) = {
        
         SQL("""
-            | INSERT IGNORE INTO `"""+ tableName +"""` (
-            | `userId`, `value`, `type`, `isPrimary` )
-            | VALUES(
-            | {userId}, {value}, {type}, {primary}
-            | )
+            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
             """.stripMargin).on(
-                "userId" -> userId,
-                "value"  -> value,
-                "type"   -> `type`,
+                "userId"  -> userId,
+                "value"   -> value,
+                "type"    -> attributeType,
                 "primary" -> primary.getOrElse(false)
-        )
+            )
     }
- 
-  
-  
 
 }

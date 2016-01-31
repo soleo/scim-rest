@@ -75,26 +75,29 @@ class UserController extends Controller {
                 val user = u.get
                 val conflicted = User.hasConflicts(user.baseUser.userName)
                 // pre insertion checking
+                println(user.baseUser.userName)
                 if(conflicted) {
-                    Conflict("userName Exists Already")
+                    Conflict(Json.obj("error" -> JsString("userName conflicts with exsiting user")))
+                        
+                }else{
+                    // normal flow
+                    val userObj = User.add(user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos, user.addresses, 
+                               None, /* Ignore Group*/ user.entitlements, user.roles, user.x509Certificates)
+                    val meta = User.setMetaData(userObj, request)
+                    //reset password before converting to JSON
+                    userObj.baseUser.password = None  
+                    var groups = User.addGroupInfo(userObj)
+                    var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+                    response = response ++ Json.toJson(groups).as[JsObject]
+                    response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
+                    // post insertion 
+                    val ETag = meta.version.getOrElse("")
+                    val location = meta.location.getOrElse("")
+                    Created(response).withHeaders(
+                         LOCATION  -> location,
+                         ETAG      -> ETag
+                    )
                 }
-                
-                val userObj = User.add(user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos, user.addresses, 
-                           None, /* Ignore Group*/ user.entitlements, user.roles, user.x509Certificates)
-                val meta = User.setMetaData(userObj, request)
-                //reset password before converting to JSON
-                userObj.baseUser.password = None  
-                var groups = User.addGroupInfo(userObj)
-                var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
-                response = response ++ Json.toJson(groups).as[JsObject]
-                response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
-                // post insertion 
-                val ETag = meta.version.getOrElse("")
-                val location = meta.location.getOrElse("")
-                Created(response).withHeaders(
-                     LOCATION  -> location,
-                     ETAG      -> ETag
-                )
                 
             }
             case e: JsError => {
@@ -120,24 +123,25 @@ class UserController extends Controller {
                         println(user.baseUser.userName)
                         if(conflicted) {
                             Conflict(Json.obj("error" -> JsString("userName conflicts with exsiting user")))
-                        }
+                        }else{
                         
-                        val userObj = User.replace(userId, user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos, user.addresses, 
-                                   None, /* Ignore Group*/ user.entitlements, user.roles, user.x509Certificates)
-                        val meta = User.setMetaData(userObj, request)
-                        //reset password before converting to JSON
-                        userObj.baseUser.password = None  
-                        var groups = User.addGroupInfo(userObj)
-                        var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
-                        response = response ++ Json.toJson(groups).as[JsObject]
-                        response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
-                        // post insertion 
-                        val ETag = meta.version.getOrElse("")
-                        val location = meta.location.getOrElse("")
-                        Created(response).withHeaders(
-                             LOCATION  -> location,
-                             ETAG      -> ETag
-                        )
+                            val userObj = User.replace(userId, user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos, user.addresses, 
+                                       None, /* Ignore Group*/ user.entitlements, user.roles, user.x509Certificates)
+                            val meta = User.setMetaData(userObj, request)
+                            //reset password before converting to JSON
+                            userObj.baseUser.password = None  
+                            var groups = User.addGroupInfo(userObj)
+                            var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+                            response = response ++ Json.toJson(groups).as[JsObject]
+                            response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
+                            // post insertion 
+                            val ETag = meta.version.getOrElse("")
+                            val location = meta.location.getOrElse("")
+                            Ok(response).withHeaders(
+                                 LOCATION  -> location,
+                                 ETAG      -> ETag
+                            )
+                        }
                         
                     }
                     case e: JsError => {

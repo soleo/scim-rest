@@ -161,11 +161,7 @@ object User {
     
     def setMetaData(user: User, request: RequestHeader): Meta = {
         val location = Utils.baseURL(request) +  "Users/" + user.id
-        val version  = Utils.generateETAG(
-                            Json.stringify(
-                                Json.toJson(user)
-                                )
-                                )
+        val version  = Utils.generateETAG(Json.stringify(Json.toJson(user)))
         
         user.meta match {
             case Some(m) => Meta(m.created, m.lastModified, Some(version), Some(location))
