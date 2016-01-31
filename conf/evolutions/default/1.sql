@@ -25,7 +25,7 @@ CREATE TABLE users (
 
 CREATE TABLE emails (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) unique not null,
+    value     varchar(50) not null,
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
