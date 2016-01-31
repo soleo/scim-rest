@@ -5,7 +5,6 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 import play.api.mvc.{RequestHeader, AnyContent, Request}
 import models.dao.GroupDAO
-import models.Group
 import utils._
 import java.util.Date
 

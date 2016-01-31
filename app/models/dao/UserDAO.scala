@@ -12,7 +12,7 @@ import parsing._
 object UserDAO {
   
   val emailParser = str("value") ~ str("emailType") ~ get[Boolean]("isPrimary") map {
-      case value ~ emailType ~ isPrimary  => Email(value, emailType, StringUtils.optionalBoolean(isPrimary))
+      case value ~ emailType ~ isPrimary  => Email(value, emailType, Utils.optionalBoolean(isPrimary))
   }
   
   def exists(user: User): Boolean =  {
@@ -285,12 +285,12 @@ object UserDAO {
 
       results.map { row =>
         val name = Name(
-                      StringUtils.removeEmptyString(row[Option[String]]("formattedName")), 
-                      StringUtils.removeEmptyString(row[Option[String]]("familyName")),
-                      StringUtils.removeEmptyString(row[Option[String]]("givenName")),
-                      StringUtils.removeEmptyString(row[Option[String]]("middleName")),
-                      StringUtils.removeEmptyString(row[Option[String]]("honorificPrefix")),
-                      StringUtils.removeEmptyString(row[Option[String]]("honorificSuffix"))
+                      Utils.removeEmptyString(row[Option[String]]("formattedName")), 
+                      Utils.removeEmptyString(row[Option[String]]("familyName")),
+                      Utils.removeEmptyString(row[Option[String]]("givenName")),
+                      Utils.removeEmptyString(row[Option[String]]("middleName")),
+                      Utils.removeEmptyString(row[Option[String]]("honorificPrefix")),
+                      Utils.removeEmptyString(row[Option[String]]("honorificSuffix"))
                       )
         val nameField = name match{
             case Name(None, None, None, None, None, None) => None
@@ -298,16 +298,16 @@ object UserDAO {
         }
         val baseUser = BaseUser(
             row[String]("username"), 
-            StringUtils.removeEmptyString(row[Option[String]]("externalId")) ,
+            Utils.removeEmptyString(row[Option[String]]("externalId")) ,
             nameField,
-            StringUtils.removeEmptyString(row[Option[String]]("displayName")),
-            StringUtils.removeEmptyString(row[Option[String]]("nickname")),
-            StringUtils.removeEmptyString(row[Option[String]]("profileURL")),
-            StringUtils.removeEmptyString(row[Option[String]]("title")),
-            StringUtils.removeEmptyString(row[Option[String]]("userType")),
-            StringUtils.removeEmptyString(row[Option[String]]("preferredLanguage")),
-            StringUtils.removeEmptyString(row[Option[String]]("locale")),
-            StringUtils.removeEmptyString(row[Option[String]]("timezone")),
+            Utils.removeEmptyString(row[Option[String]]("displayName")),
+            Utils.removeEmptyString(row[Option[String]]("nickname")),
+            Utils.removeEmptyString(row[Option[String]]("profileURL")),
+            Utils.removeEmptyString(row[Option[String]]("title")),
+            Utils.removeEmptyString(row[Option[String]]("userType")),
+            Utils.removeEmptyString(row[Option[String]]("preferredLanguage")),
+            Utils.removeEmptyString(row[Option[String]]("locale")),
+            Utils.removeEmptyString(row[Option[String]]("timezone")),
             (row[Option[Boolean]]("active")),
             None// Leave password alone
             )
@@ -349,12 +349,12 @@ object UserDAO {
 
       results.map { row =>
         val name = Name(
-                      StringUtils.removeEmptyString(row[Option[String]]("formattedName")), 
-                      StringUtils.removeEmptyString(row[Option[String]]("familyName")),
-                      StringUtils.removeEmptyString(row[Option[String]]("givenName")),
-                      StringUtils.removeEmptyString(row[Option[String]]("middleName")),
-                      StringUtils.removeEmptyString(row[Option[String]]("honorificPrefix")),
-                      StringUtils.removeEmptyString(row[Option[String]]("honorificSuffix"))
+                      Utils.removeEmptyString(row[Option[String]]("formattedName")), 
+                      Utils.removeEmptyString(row[Option[String]]("familyName")),
+                      Utils.removeEmptyString(row[Option[String]]("givenName")),
+                      Utils.removeEmptyString(row[Option[String]]("middleName")),
+                      Utils.removeEmptyString(row[Option[String]]("honorificPrefix")),
+                      Utils.removeEmptyString(row[Option[String]]("honorificSuffix"))
                       )
         val nameField = name match{
             case Name(None, None, None, None, None, None) => None
@@ -362,16 +362,16 @@ object UserDAO {
         }
         val baseUser = BaseUser(
             row[String]("username"), 
-            StringUtils.removeEmptyString(row[Option[String]]("externalId")) ,
+            Utils.removeEmptyString(row[Option[String]]("externalId")) ,
             nameField,
-            StringUtils.removeEmptyString(row[Option[String]]("displayName")),
-            StringUtils.removeEmptyString(row[Option[String]]("nickname")),
-            StringUtils.removeEmptyString(row[Option[String]]("profileURL")),
-            StringUtils.removeEmptyString(row[Option[String]]("title")),
-            StringUtils.removeEmptyString(row[Option[String]]("userType")),
-            StringUtils.removeEmptyString(row[Option[String]]("preferredLanguage")),
-            StringUtils.removeEmptyString(row[Option[String]]("locale")),
-            StringUtils.removeEmptyString(row[Option[String]]("timezone")),
+            Utils.removeEmptyString(row[Option[String]]("displayName")),
+            Utils.removeEmptyString(row[Option[String]]("nickname")),
+            Utils.removeEmptyString(row[Option[String]]("profileURL")),
+            Utils.removeEmptyString(row[Option[String]]("title")),
+            Utils.removeEmptyString(row[Option[String]]("userType")),
+            Utils.removeEmptyString(row[Option[String]]("preferredLanguage")),
+            Utils.removeEmptyString(row[Option[String]]("locale")),
+            Utils.removeEmptyString(row[Option[String]]("timezone")),
             (row[Option[Boolean]]("active")),
             None// Leave password alone
             )
