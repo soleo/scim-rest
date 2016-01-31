@@ -11,15 +11,16 @@ import models.Meta
 
 class GroupController extends Controller {
 
-  def findAll = Action { implicit request =>
+  def findAll = AuthenticatedAction { implicit request =>
     
     val groups = Group.findAll
     var total: Int = 0
     var resources = Json.arr()
     
     for(group <- groups){
-        //group.meta = RequestUtils.addMetaData("Groups", group.id, group.meta, request)
-        var groupJsonObj = Json.toJson(group) 
+        
+        val meta = Group.setMetaData(group, request)
+        var groupJsonObj = Json.toJson(group).as[JsObject] ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
         resources = resources :+ groupJsonObj
         // Increase Count Now
         total += 1
@@ -35,7 +36,7 @@ class GroupController extends Controller {
     
   }
 
-  def update(groupId : String) = Action { implicit request =>
+  def update(groupId : String) = AuthenticatedAction { implicit request =>
     request.body.asJson.map { implicit json =>
       json.validate[Group].map {
         case group =>
@@ -46,7 +47,7 @@ class GroupController extends Controller {
         e => BadRequest(JsError.toJson(e))
       }
     }.getOrElse {
-      BadRequest("Expecting Json data")
+       BadRequest(Json.obj("error" -> JsString("Expecting Json data")))
     }
   }
 

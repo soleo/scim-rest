@@ -9,5 +9,6 @@ object X509Certificate {
 
 case class X509Certificate (
                              value: String,
-                             primary: Boolean
+                             `type`: String,
+                             primary: Option[Boolean] = None
                            )

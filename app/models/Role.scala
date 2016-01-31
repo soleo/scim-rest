@@ -5,22 +5,11 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 object Role {
-  //implicit val roleFormat = Json.format[Role]
-   implicit val roleReads: Reads[Role] = (
-      (__ \ "value").read[String] and
-      (__ \ "type").read[String] and
-      (__ \ "primary").readNullable[Boolean]
-    )(Role.apply _)
-
-  implicit val roleWrites: Writes[Role] = (
-      (__ \ "value").write[String] and
-      (__ \ "type").write[String] and
-      (__ \ "primary").writeNullable[Boolean]
-    )(unlift(Role.unapply))
+   implicit val roleFormat = Json.format[Role]
 }
 
 case class Role(
                  value: String,
-                 Roletype: String,
-                 primary: Option[Boolean]
+                 `type`: String,
+                 primary: Option[Boolean] = None
                )

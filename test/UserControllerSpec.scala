@@ -34,7 +34,18 @@ class UserControllerSpec extends Specification {
     }
     
     "get all users" in new WithApplication{
-        val result = route(FakeRequest(GET, "/v1/Users"))
+        val fakeRequest = FakeRequest(
+                                method = Helpers.GET,
+                                uri = "/v1/Users",
+                                headers = FakeHeaders(
+                                        Seq(
+                                            "Content-type" -> "application/json",
+                                            "Authorization" -> "Basic c2hhb3hpbmppYW5nQGdtYWlsLmNvbToxMjM0NTY="
+                                        )
+                                ),
+                                body = ""
+                            )
+        val result = route(fakeRequest)
         result must not be(None)
         val f = result.get
         status(f) must equalTo(OK)

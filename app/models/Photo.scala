@@ -5,21 +5,10 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 object Photo {
-  //implicit val photoFormat = Json.format[Photo]
-   implicit val photoReads: Reads[Photo] = (
-      (__ \ "value").read[String] and
-      (__ \ "type").read[String] and
-      (__ \ "primary").readNullable[Boolean]
-    )(Photo.apply _)
-
-  implicit val photoWrites: Writes[Photo] = (
-      (__ \ "value").write[String] and
-      (__ \ "type").write[String] and
-      (__ \ "primary").writeNullable[Boolean]
-    )(unlift(Photo.unapply))
+  implicit val photoFormat = Json.format[Photo]
 }
 case class Photo (
                    value: String,
-                   photoType: String,
-                   primary: Option[Boolean]
+                   `type`: String,
+                   primary: Option[Boolean] = None
                  )

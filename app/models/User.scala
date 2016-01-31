@@ -4,17 +4,50 @@ import models.User._
 import models._
 import models.dao.UserDAO
 import models.dao.GroupDAO
+import play.api.mvc.{RequestHeader, AnyContent, Request}
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.json.Writes._
-
+import utils._
 import java.util.UUID
+import java.util.Date
 
 object User {
     
-    implicit val userFormat  = Json.format[User]
+    implicit val userReadFormat: Reads[User] = new Reads[User] {
+        override def reads(json: JsValue): JsResult[User] = {
+            for {
+               baseUser <- json.validate[BaseUser]
+               emails   <- (json \ "emails").validateOpt[List[Email]]
+               phoneNumbers <- (json \ "phoneNumbers").validateOpt[List[PhoneNumber]]
+               ims <- (json \ "ims").validateOpt[List[Im]]
+               photos <- (json \ "photos").validateOpt[List[Photo]]
+               addresses <- (json \ "addresses").validateOpt[List[Address]]
+               entitlements <- (json \ "entitlements").validateOpt[List[Entitlement]]
+               roles <-  (json \ "roles").validateOpt[List[Role]]
+               x509Certificates <- (json \ "x509Certificates").validateOpt[List[X509Certificate]]
+            }yield{
+                User("", baseUser, emails, phoneNumbers, ims, photos, addresses, None, entitlements, roles, x509Certificates )
+            }
+            
+        }
+    }
+    
+    implicit val userWrites = Json.writes[User]
+    
+    def findOneByEmail(email: String): Option[String] = {
+        Some(email)
+    }
+    
+    def authenticate(email: String, password: String) : Boolean = {
+        //temp block for auth. should use another source to match password
+        if(email == "shaoxinjiang@gmail.com" && password == "123456")
+            true
+        else
+            false
+    }
     
     def exists(userId: String) : Option[User] = {
         val user = User(userId)
@@ -38,9 +71,9 @@ object User {
             x509certs: Option[List[X509Certificate]]
             ): User  =  {
       val id: String = UUID.randomUUID.toString
-     
-      UserDAO.create(id, baseUser, emails, phoneNumbers, ims, photos, addresses, groups, entitlements, roles, x509certs)
-      User(id, baseUser, emails, phoneNumbers, ims, photos, addresses, groups, entitlements, roles, x509certs )
+      val meta: Option[Meta] = Some(Meta(new Date, new Date, None, None))
+      UserDAO.create(id, baseUser, emails, phoneNumbers, ims, photos, addresses, groups, entitlements, roles, x509certs, meta)
+      User(id, baseUser, emails, phoneNumbers, ims, photos, addresses, groups, entitlements, roles, x509certs, meta )
     }
     
     def delete(userId: String) = {
@@ -117,12 +150,26 @@ object User {
       }
     }
     
-    def checkConflicts(userName:String) : Boolean = {
+    def hasConflicts(userName: String) : Boolean = {
         val user: User = User("", BaseUser(userName))
         if(UserDAO.exists(user)) {
             true
         }else{
             false
+        }
+    }
+    
+    def setMetaData(user: User, request: RequestHeader): Meta = {
+        val location = Utils.baseURL(request) +  "Users/" + user.id
+        val version  = Utils.generateETAG(
+                            Json.stringify(
+                                Json.toJson(user)
+                                )
+                                )
+        
+        user.meta match {
+            case Some(m) => Meta(m.created, m.lastModified, Some(version), Some(location))
+            case None => Meta(new Date, new Date, Some(version), Some(location))
         }
     }
 }    
@@ -134,11 +181,11 @@ case class User(
         ims: Option[List[Im]] = None,
         photos: Option[List[Photo]] = None,
         addresses: Option[List[Address]] = None,
-        var groups: Option[List[Group]] = None,
+        groups: Option[List[Group]] = None,
         entitlements: Option[List[Entitlement]] = None,
         roles: Option[List[Role]] = None,
         x509Certificates: Option[List[X509Certificate]] = None,
-        var meta: Option[Meta] = None
+        meta: Option[Meta] = None
     )
  
 

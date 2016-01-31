@@ -6,40 +6,27 @@ import play.api.mvc._
 import play.api.Play.current
 import play.api.db._
 import play.api.libs.json._
-import utils.RequestUtils
+import utils._
 import models._
 import models.User._
 
+
 class UserController extends Controller {
 
-  def findAll = Action { implicit request =>
-   
-    val couldFilter = request.queryString.get("filter").isDefined && request.queryString("filter").toString().contains("emails") 
-    
-    val filter = if(couldFilter) {
-        //@TODO: Parse filter syntax
-        // Only support or, and, co, eq for emails field
-        //println(s"Can Filter Emails")
-        
-        Some(request.queryString.get("filter").get.toString())
-    }else{
-        None
-    }
-
-   
+  def findAll(filter: Option[String]) = AuthenticatedAction { implicit request =>
     val users = User.findAll(filter)
     var total: Int = 0
     var resources = Json.arr()
     
-    for(user <- users) {
-        user.meta = RequestUtils.addMetaData("Users", user.id, user.meta,  request)
-        val singleUser = Json.toJson(user)
-        val flattenedJson = User.removeBaseTraits(singleUser)
-        val jsonObject = flattenedJson.as[JsObject]
-        val userGroups = User.addGroupInfo(user)// readOnly
-        var finalUser = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
-        
-        resources = resources :+ finalUser
+    for(userObj <- users) {
+        val meta = User.setMetaData(userObj, request)
+        userObj.baseUser.password = None  
+        var groups = User.addGroupInfo(userObj)
+        var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+            response = response ++ Json.toJson(groups).as[JsObject]
+            response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
+        // append a user to the resource list
+        resources = resources :+ response
         // Increase Count Now
         total += 1
     }
@@ -47,185 +34,141 @@ class UserController extends Controller {
     Ok(
         Json.obj(
             "totalResults" -> total,
-            "schemes" -> Json.arr("urn:scim:schemas:core:1.0"),
+            "schemas" -> Json.arr("urn:scim:schemas:core:1.0"),
             "Resources" -> resources
         )
     )
     
   }
   
-  def find(userId : String) = Action { implicit request =>
+  def find(userId : String) = AuthenticatedAction { implicit request =>
     
     val user = User.findOne(userId)
     user match {
-        case None => NotFound(RequestUtils.notFoundMessage(userId))
-        case Some(user) => {
-          
-          user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
-          val location = RequestUtils.getLocation(user.meta)
-          val response = Json.toJson(user)
-          val flattenedJson = User.removeBaseTraits(response)
-         
-          // combine results
-          val jsonObject = flattenedJson.as[JsObject]
-          val userGroups = User.addGroupInfo(user)// readOnly
-          val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
-          val ETag = RequestUtils.generateETAG(user.meta.getOrElse(Meta(new Date, new Date)))
-          Ok(finalResponse).withHeaders(
-                "Location" -> location,
-                ETAG       -> ETag.getOrElse("")
+        case None => NotFound(Utils.resourceNotFoundMessage(userId))
+        case Some(userObj) => {
+            val meta = User.setMetaData(userObj, request)
+            //reset password before converting to JSON
+            userObj.baseUser.password = None  
+            var groups = User.addGroupInfo(userObj)
+            var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+            response = response ++ Json.toJson(groups).as[JsObject]
+            response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
+            // post fetching 
+            val ETag = meta.version.getOrElse("")
+            val location = meta.location.getOrElse("")
+            Ok(response).withHeaders(
+                LOCATION  -> location,
+                ETAG      -> ETag
             )
         } 
     }
     
   }
   
-  // RAW JSON -> Transformed JSON -> O-O -> DB Store -> O-O -> JSON -> Meta Added
-  def add = Action { implicit request =>
-    request.body.asJson.map { implicit json =>
-      json.validate[BaseUser].map {
-        case baseUser => {
-          
-          // @TODO: add validation later
-          val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
-          val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
-          val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
-          val photos: Option[List[Photo]] = (json \ "photos").asOpt[List[Photo]]
-          val addresses: Option[List[Address]] = (json \ "addresses").asOpt[List[Address]]
-          //val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
-          val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
-          val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
-          val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
-          // @TODO: check for confilicts before adding, return 409 if conficts with current Users e.g userName 
-          val status = User.checkConflicts(baseUser.userName)
-          if(!status) {
-              Conflict("userName Exists Already")
-          }
-          val user: User = User.add(
-                                        baseUser, 
-                                        emails, 
-                                        phoneNumbers,
-                                        ims,
-                                        photos,
-                                        addresses,
-                                        None, // Group
-                                        entitlements,
-                                        roles,
-                                        x509certs
-                                        )
-        
-          user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
-          
-          //reset password before converting to JSON
-          user.baseUser.password = None 
-          val response = Json.toJson(user)
-          val flattenedJson = User.removeBaseTraits(response)
-          
-          // combine results
-          val jsonObject = flattenedJson.as[JsObject]
-          val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject]
-          val location = RequestUtils.getLocation(user.meta)
-          val ETag = RequestUtils.generateETAG(user.meta.getOrElse(Meta(new Date, new Date)))
-          Created(finalResponse).withHeaders(
-                "Location" -> location,
-                 ETAG      -> ETag.getOrElse("")
-            )
-            
+  // RAW JSON -> Transformed JSON -> O-O -> DB Store -> O-O -> JSON -> Meta, Group Info Added Json
+  def add = AuthenticatedAction { implicit request =>
+    request.body.asJson.map { implicit json => 
+        // validate User
+        json.validate[User] match {
+            case u: JsSuccess[user] => {
+                val user = u.get
+                val conflicted = User.hasConflicts(user.baseUser.userName)
+                // pre insertion checking
+                if(conflicted) {
+                    Conflict("userName Exists Already")
+                }
+                
+                val userObj = User.add(user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos, user.addresses, 
+                           None, /* Ignore Group*/ user.entitlements, user.roles, user.x509Certificates)
+                val meta = User.setMetaData(userObj, request)
+                //reset password before converting to JSON
+                userObj.baseUser.password = None  
+                var groups = User.addGroupInfo(userObj)
+                var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+                response = response ++ Json.toJson(groups).as[JsObject]
+                response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
+                // post insertion 
+                val ETag = meta.version.getOrElse("")
+                val location = meta.location.getOrElse("")
+                Created(response).withHeaders(
+                     LOCATION  -> location,
+                     ETAG      -> ETag
+                )
+                
+            }
+            case e: JsError => {
+                BadRequest(JsError.toJson(e))
+            }
         }
-      }.recoverTotal{
-        e => BadRequest(JsError.toJson(e))
-      }
     }.getOrElse {
-      BadRequest("Expecting Json data")
+      BadRequest(Json.obj("error" -> JsString("Expecting Json data")))
     }
   }
 
-  def replace(userId : String) = Action { implicit  request =>
+  def replace(userId : String) = AuthenticatedAction { implicit  request =>
     val user = User.exists(userId)
     user match {
-        case None => NotFound(RequestUtils.notFoundMessage(userId))
+        case None => NotFound(Utils.resourceNotFoundMessage(userId))
         case Some(user) => {
             request.body.asJson.map { implicit json =>
-              json.validate[BaseUser].map {
-                case baseUser => {
-                    //println(baseUser)
-                    val emails: Option[List[Email]] = (json \ "emails").asOpt[List[Email]]
-                    val phoneNumbers: Option[List[PhoneNumber]] = (json \ "phoneNumbers").asOpt[List[PhoneNumber]]
-                    val ims: Option[List[Im]] = (json \ "ims").asOpt[List[Im]]
-                    val photos: Option[List[Photo]] = (json \ "photos").asOpt[List[Photo]]
-                    val addresses: Option[List[Address]] = (json \ "addresses").asOpt[List[Address]]
-                    // groups are readOnly
-                    //val groups: Option[List[Group]] = (json \ "groups").asOpt[List[Group]]
-                    val entitlements: Option[List[Entitlement]] = (json \ "entitlements").asOpt[List[Entitlement]]
-                    val roles: Option[List[Role]] = (json \ "roles").asOpt[List[Role]]
-                    val x509certs: Option[List[X509Certificate]] = (json \ "x509Certificates").asOpt[List[X509Certificate]]
-                    // ignore any read-only attributes and password
-                    val user: User = User.replace(
-                                        userId,
-                                        baseUser, 
-                                        emails, 
-                                        phoneNumbers,
-                                        ims,
-                                        photos,
-                                        addresses,
-                                        None,
-                                        entitlements,
-                                        roles,
-                                        x509certs
-                                        )
-                    user.meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
-          
-                    //reset password before converting to JSON
-                    user.baseUser.password = None 
-                    
-                    val response = Json.toJson(user)
-                    val flattenedJson = User.removeBaseTraits(response)
-                    // combine results
-                    val jsonObject = flattenedJson.as[JsObject]
-                    val userGroups = User.addGroupInfo(user)// readOnly
-                    val finalResponse = jsonObject ++ Json.toJson(user.baseUser).as[JsObject] ++ userGroups
-                    
-                    val ETag = RequestUtils.generateETAG(user.meta.getOrElse(Meta(new Date, new Date)))
-                    val location = RequestUtils.getLocation(user.meta)
-                    
-                    Ok(finalResponse).withHeaders(
-                            "Location" -> location,
-                            ETAG -> ETag.getOrElse("")
-                    )
-                    
-                  
-                    
+                json.validate[User] match {
+                    case u: JsSuccess[user] => {
+                        val user = u.get
+                        val conflicted = User.hasConflicts(user.baseUser.userName)
+                        // pre insertion checking
+                        println(user.baseUser.userName)
+                        if(conflicted) {
+                            Conflict(Json.obj("error" -> JsString("userName conflicts with exsiting user")))
+                        }
+                        
+                        val userObj = User.replace(userId, user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos, user.addresses, 
+                                   None, /* Ignore Group*/ user.entitlements, user.roles, user.x509Certificates)
+                        val meta = User.setMetaData(userObj, request)
+                        //reset password before converting to JSON
+                        userObj.baseUser.password = None  
+                        var groups = User.addGroupInfo(userObj)
+                        var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+                        response = response ++ Json.toJson(groups).as[JsObject]
+                        response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
+                        // post insertion 
+                        val ETag = meta.version.getOrElse("")
+                        val location = meta.location.getOrElse("")
+                        Created(response).withHeaders(
+                             LOCATION  -> location,
+                             ETAG      -> ETag
+                        )
+                        
+                    }
+                    case e: JsError => {
+                        BadRequest(JsError.toJson(e))
+                    }
                 }
-              }.recoverTotal{
-                e => BadRequest(JsError.toJson(e))
-              }
             }.getOrElse {
-              BadRequest("Expecting Json data")
+              BadRequest(Json.obj("error" -> JsString("Expecting Json data")))
             }
         }
     }
   }
 
-  def remove(userId : String) = Action { implicit request =>
+  def remove(userId : String) = AuthenticatedAction { implicit request =>
     val user = User.exists(userId)
     user match {
-        case None => NotFound(RequestUtils.notFoundMessage(userId))
-        case Some(user) => {
-          val meta = RequestUtils.addMetaData("Users", user.id, user.meta, request)
-          val location = RequestUtils.getLocation(meta)
-          val ETag = RequestUtils.generateETAG(meta.getOrElse(Meta(new Date, new Date)))
+        case None => NotFound(Utils.resourceNotFoundMessage(userId))
+        case Some(userObj) => {
+          val meta = User.setMetaData(userObj, request)
           
           User.delete(userId)
           
+          val ETag = meta.version.getOrElse("")
+          val location = meta.location.getOrElse("")
           Ok("").withHeaders(
-                "Location" -> location,
-                 ETAG      -> ETag.getOrElse("")
-            )
-          
+                     LOCATION  -> location,
+                     ETAG      -> ETag
+          )
         }
     }
   }
 
-  // https://gist.github.com/guillaumebort/2328236 for auth
 
 }

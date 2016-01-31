@@ -6,22 +6,12 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 object Entitlement {
- 
-   implicit val entitlementReads: Reads[Entitlement] = (
-      (__ \ "value").read[String] and
-      (__ \ "type").read[String] and
-      (__ \ "primary").readNullable[Boolean]
-    )(Entitlement.apply _)
-
-  implicit val entitlementWrites: Writes[Entitlement] = (
-      (__ \ "value").write[String] and
-      (__ \ "type").write[String] and
-      (__ \ "primary").writeNullable[Boolean]
-    )(unlift(Entitlement.unapply))
+   implicit val entitlementFormat = Json.format[Entitlement]
+  
 }
 
 case class Entitlement (
                          value: String,
-                         entitlementType: String,
-                         primary: Option[Boolean]
+                         `type`: String,
+                         primary: Option[Boolean] = None
                        )
