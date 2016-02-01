@@ -9,8 +9,11 @@ notifications:
     recipients:
     - shaoxinjiang@gmail.com
 jdk:
-- oraclejdk7
 - oraclejdk8
+before_install:
+- mysql -e "create database IF NOT EXISTS default;" -uroot
+services:
+- mysql
 env:
   matrix:
     secure: k4g8EcK5MLyPRWWLia8s3Xn1++HY4VYlEVCSLL1rzX5oMRKEhv6gKRmVOJhw5t4azQWKb5M+Bs92ivxAVfouvAtUYeqsS1JeeYvAFQbLHjrv4J4gvgrpb9ybl9RzqbTkOFJpiXp7gzhjeGDCslcCv07MEK6Uk2S/KXJ/cuA4u8HPFVUG/kMYWftrnJFoX1xcJ6Vv2HMWTu0/+loCTfQ44bOiI3bQxSNKA9GwokW93WM9BqMCzpcmSfaF8b8HDCghJEA1ypL93UcVe/9e62FEWUY47kmqHwMdGsVU2brersHe7uY9lJrVskkJ8WlZpGOQEIHKXyuxSOa3WflEEfJPGbYGMITt0By0vgeKfU7VpBN6j/8/3jHUkRcsSt/7XSBXSkoAmVszD4z2a6DoPw0vCMUh4O5LAYKctAwZ0YcHPEAGhY+wQbGZiDOAoi6ckDP3XkORHVs1rAfduL2xWOuJM4x4bJwOiRNieuElICpmWul+hD8l+6qiyWOYlChQZM269PZ0wA21nBz0VYeMH+fKPNfWNT9LaihNAcxR6wYEys3jUdvzVp17RrJh1qtYwmcwBHNwHBHQRiSGyjHtaMFWWNaBDorxW4QMGZn7VnKFGaAeO1+3snS5OABFVmkgg1I1CTLStg8CQHBLnLMyydmx96KEW33zJg/Sbl4vhj4Vdzo=
