@@ -13,4 +13,7 @@ jdk:
 services:
   - mysql
 before_script:
-  - sh scripts/init.sh
+  - mysql -u root < scripts/db_clean.sql
+  - mysql -u root < scripts/db_init.sql
+  - mysql -u scim_test -p1e0OZH5f9asCJ0Anj11ia0Wmy scim_test < scripts/db_schema.sql
+  - mysql -u scim_test -p1e0OZH5f9asCJ0Anj11ia0Wmy scim_test -e 'show tables;'
