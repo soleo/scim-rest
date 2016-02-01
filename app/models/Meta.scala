@@ -14,7 +14,7 @@ object Meta {
       (__ \ "lastModified").write(dateWrites("yyyy-MM-dd'T'HH:mm:ss'Z'")) and
       (__ \ "version").writeNullable[String] and
       (__ \ "location").writeNullable[String] and
-      (__ \ "attributes").writeNullable[String]
+      (__ \ "attributes").writeNullable[List[String]]
     )(unlift(Meta.unapply))
 
 }
@@ -24,5 +24,5 @@ case class Meta (
                   lastModified: Date,
                   version: Option[String] = None,
                   location: Option[String] = None,
-                  attributes: Option[String] = None
+                  attributes: Option[List[String]] = None
                 )

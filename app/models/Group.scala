@@ -12,11 +12,25 @@ object Member {
     implicit val memberFormat = Json.format[Member]
 }
 
-case class Member( value: String, display: Option[String])
+case class Member( value: String, display: Option[String], operation: Option[String] = None)
 
 
 object Group {
-  implicit val groupFormat = Json.format[Group]
+    
+    implicit val groupReadFormat: Reads[Group] = new Reads[Group] {
+        override def reads(json: JsValue): JsResult[Group] = {
+            for {
+            
+               members   <- (json \ "members").validateOpt[List[Member]]
+               meta      <- (json \ "meta").validateOpt[Meta]
+            }yield{
+                Group("", "", members, meta)
+            }
+        }
+    }
+    
+    implicit val groupWrites = Json.writes[Group]
+    
   
     def findAll(): List[Group] = {
         var groups: Option[List[Group]] = GroupDAO.findAll
@@ -38,9 +52,27 @@ object Group {
             }
         }
     }
-  
-    def patch(group: Group): Group = {
-        GroupDAO.patch(group)
+
+    def patchMembers(groupId: String, members: Option[List[Member]]) : Option[Group] = {
+        val group = Group(groupId, "", members) 
+        val grp = GroupDAO.patchMembers(group)
+        grp match {
+            case None => None
+            case Some(g) =>
+            {
+                val mbs: Option[List[Member]] = GroupDAO.findMembersByGroupId(g.id)
+                val newGroup = Group(g.id, g.displayName, mbs)
+                Some(newGroup)
+            }
+        }
+    }
+    
+    def replaceMembers(groupId: String, members:Option[List[Member]]) : Group = {
+        val group = Group(groupId, "", members) 
+        val grp = GroupDAO.replaceMembers(group)
+        // get new members out
+        val mbs: Option[List[Member]] = GroupDAO.findMembersByGroupId(grp.id)
+        Group(grp.id, grp.displayName, mbs)
     }
     
     def setMetaData(group: Group, request: RequestHeader): Meta = {
