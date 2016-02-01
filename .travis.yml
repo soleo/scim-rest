@@ -13,4 +13,4 @@ jdk:
 services:
   - mysql
 before_script:
-  - mysql -u root -e 'create database scim_test;'
+  - sh scripts/init.sh

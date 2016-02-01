@@ -1,19 +1,19 @@
--- https://github.com/ezhukov/scim-sample/blob/master/src/main/sql/create_tables.sql
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS emails;
-DROP TABLE IF EXISTS phoneNumbers;
-DROP TABLE IF EXISTS ims;
-DROP TABLE IF EXISTS photos;
-DROP TABLE IF EXISTS addresses;
-DROP TABLE IF EXISTS groups_users;
-DROP TABLE IF EXISTS groups;
-DROP TABLE IF EXISTS entitlements;
-DROP TABLE IF EXISTS roles;
-DROP TABLE IF EXISTS x509Certificates;
+
+DROP TABLE IF EXSITS groups_users;
+DROP TABLE IF EXSITS emails;
+DROP TABLE IF EXSITS phoneNumbers;
+DROP TABLE IF EXSITS ims;
+DROP TABLE IF EXSITS photos;
+DROP TABLE IF EXSITS addresses;
+DROP TABLE IF EXSITS groups;
+DROP TABLE IF EXSITS entitlements;
+DROP TABLE IF EXSITS roles;
+DROP TABLE IF EXSITS x509Certificates;
+DROP TABLE IF EXSITS users;
 
 CREATE TABLE users (
     id                varchar(36) not null PRIMARY KEY,
-    externalId        varchar(36) not null,
+    externalId        varchar(36),
     username          varchar(20) unique not null,
     formattedName     varchar(255),
     familyName        varchar(70),
@@ -33,20 +33,17 @@ CREATE TABLE users (
     password          varchar(255),
     created           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     lastModified      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    -- location          varchar(255) not null,
-    -- version           varchar(100) not null,
-    -- gender            varchar(6)
 ) ENGINE=InnoDB;
 
 CREATE TABLE emails (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) unique not null,
+    value     varchar(50) not null,
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE phoneNumbers (
@@ -57,7 +54,7 @@ CREATE TABLE phoneNumbers (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE ims (
@@ -68,7 +65,7 @@ CREATE TABLE ims (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE photos (
@@ -79,7 +76,7 @@ CREATE TABLE photos (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE addresses (
@@ -96,7 +93,7 @@ CREATE TABLE addresses (
     postalCode    varchar(10),
     country       char(2),
     userId        varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 
@@ -112,8 +109,8 @@ CREATE TABLE groups_users (
     id        SERIAL PRIMARY KEY,
     userId    varchar(36) not null,
     groupId   varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (groupId) REFERENCES groups(id)
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (groupId) REFERENCES groups(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE entitlements (
@@ -124,7 +121,7 @@ CREATE TABLE entitlements (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE roles (
@@ -135,7 +132,7 @@ CREATE TABLE roles (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE x509Certificates (
@@ -146,7 +143,38 @@ CREATE TABLE x509Certificates (
     type      varchar(20),
     operation varchar(20),
     userId    varchar(36) not null,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
+INSERT IGNORE INTO `users` (
+`id`, `externalId`, `username`,
+`formattedName`, `familyName`, `givenName`,  `nickname`, 
+`profileURL`, `active`, `password`, `displayName`
+)
+VALUES
+(
+'2819c223-7f76-453a-919d-413861904646', 'soleo', 'soleoshao',
+'Xinjiang Shao', 'Shao', 'Xinjiang',  'soleo',
+'http://xinjiangshao.com', true, '123456', 'Xinjiang Shao'
+);
+
+INSERT IGNORE INTO `emails` (
+    `userId`, `value`, `type`, `isPrimary`
+)VALUES
+('2819c223-7f76-453a-919d-413861904646', 'shaoxinjiang@gmail.com' ,'work', true),
+('2819c223-7f76-453a-919d-413861904646', 'xinjiang.shao@gmail.com' ,'personal', false);
+
+INSERT IGNORE INTO `groups` (
+    `id`, `displayName`
+)VALUES(
+    'e9e30dba-f08f-4109-8486-d5c6a331660a', 'Developer'
+);
+
+INSERT IGNORE INTO `groups_users` (
+    `userId`, `groupId`
+)VALUES(
+    '2819c223-7f76-453a-919d-413861904646', 'e9e30dba-f08f-4109-8486-d5c6a331660a'
+);
+
 
 
