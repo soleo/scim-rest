@@ -5,8 +5,9 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 
-object Im {
+object Im extends PluralAttribute {
    implicit val imFormat = Json.format[Im]
+
 }
 
 case class Im (

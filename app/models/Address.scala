@@ -4,7 +4,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
-object Address {
+object Address extends PluralAttribute{
   implicit val addressFormat = Json.format[Address]
 }
 case class Address(

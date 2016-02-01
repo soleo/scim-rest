@@ -4,8 +4,9 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
-object PhoneNumber {
+object PhoneNumber extends PluralAttribute {
    implicit val phoneNumberFormat = Json.format[PhoneNumber]
+
 }
 
 case class PhoneNumber(

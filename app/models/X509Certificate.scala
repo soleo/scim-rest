@@ -2,7 +2,7 @@ package models
 
 import play.api.libs.json.Json
 
-object X509Certificate {
+object X509Certificate extends PluralAttribute {
   implicit val x509CertificateFormat = Json.format[X509Certificate]
 }
 

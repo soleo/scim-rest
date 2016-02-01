@@ -5,7 +5,7 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.data.validation._
 
-object Email {
+object Email extends PluralAttribute {
   
  
   implicit val emailReads: Reads[Email] = (

@@ -4,7 +4,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
-object Role {
+object Role extends PluralAttribute {
    implicit val roleFormat = Json.format[Role]
 }
 

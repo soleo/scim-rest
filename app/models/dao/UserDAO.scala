@@ -8,6 +8,7 @@ import play.api.db._
 import utils._
 import java.util.Date
 import parsing._
+import scala.language.implicitConversions
 
 object UserDAO {
   
@@ -159,118 +160,53 @@ object UserDAO {
         emails match {
             case Some(emails) =>
                 for (email:Email <- emails) {
-                    println(email)
-                    val tableName = "emails"
-                    val ret = SQL("""
-                        INSERT INTO `emails` (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> email.value,
-                            "type"    -> email.`type`,
-                            "primary" -> email.primary.getOrElse(false)
-                    ).executeInsert()
-                    println("email ret = "+ret)
+                    insertPluralAttributes("emails", id, email.value, email.`type`, email.primary)
                 }
-                //UserDAO.insertPluralAttributes("emails", id, email.value, email.`type`, email.primary).executeInsert()
             case None => println("emails: Do Nothing")
         }
         phoneNumbers match {
             case Some(phoneNumbers) => 
                 for(phoneNumber <- phoneNumbers) {
-                    val tableName = "phoneNumbers"
-                    SQL("""
-                        INSERT INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> phoneNumber.value,
-                            "type"    -> phoneNumber.`type`,
-                            "primary" -> phoneNumber.primary.getOrElse(false)
-                    ).executeInsert()
+                    insertPluralAttributes("phoneNumbers", id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary)
                 }
-                //UserDAO.insertPluralAttributes("phoneNumbers", id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary).executeInsert()
             case None => println("phoneNumbers: Do Nothing")
         }
         ims match {
             case Some(ims) => 
                 for(im <- ims) {
-                    val tableName = "ims"
-                    SQL("""
-                        INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> im.value,
-                            "type"    -> im.`type`,
-                            "primary" -> im.primary.getOrElse(false)
-                    ).executeInsert()
+                    insertPluralAttributes("ims", id, im.value, im.`type`, im.primary)
                 }
-                //UserDAO.insertPluralAttributes("ims", id, im.value, im.`type`, im.primary).executeInsert()
             case None => println("ims: Do Nothing")
         }
         photos match {
             case Some(photos) =>
                 for(photo <- photos) {
-                    val tableName = "photos"
-                    SQL("""
-                        INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> photo.value,
-                            "type"    -> photo.`type`,
-                            "primary" -> photo.primary.getOrElse(false)
-                    ).executeInsert()
+                    insertPluralAttributes("photos", id, photo.value, photo.`type`, photo.primary)
                 }
-                //UserDAO.insertPluralAttributes("photos", id, photo.value, photo.`type`, photo.primary).executeInsert()
         
             case None => println("photos: Do Nothing")
         }
         entitlements match {
             case Some(entitlements) =>
                 for(entitlement <- entitlements) {
-                    val tableName = "entitlements"
-                    SQL("""
-                        INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> entitlement.value,
-                            "type"    -> entitlement.`type`,
-                            "primary" -> entitlement.primary.getOrElse(false)
-                    ).executeInsert()
-                } 
-                //UserDAO.insertPluralAttributes("entitlements", id, entitlement.value, entitlement.`type`, entitlement.primary).executeInsert()
+                    insertPluralAttributes("entitlements", id, entitlement.value, entitlement.`type`, entitlement.primary)
+                }
         
             case None => println("entitlements: Do Nothing")
         }
         roles match {
             case Some(roles) =>
                 for(role <- roles) {
-                    val tableName = "roles"
-                    SQL("""
-                        INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> role.value,
-                            "type"    -> role.`type`,
-                            "primary" -> role.primary.getOrElse(false)
-                    ).executeInsert()
+                   insertPluralAttributes("roles", id, role.value, role.`type`, role.primary)
                 }
-                //UserDAO.insertPluralAttributes("roles", id, role.value, role.`type`, role.primary).executeInsert()
         
             case None => println("roles: Do Nothing")
         }
         x509Certificates match {
             case Some(x509Certificates) =>
                 for(x509Certificate <- x509Certificates) {
-                    val tableName = "x509Certificates"
-                    SQL("""
-                        INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                        """.stripMargin).on(
-                            "userId"  -> id,
-                            "value"   -> x509Certificate.value,
-                            "type"    -> x509Certificate.`type`,
-                            "primary" -> x509Certificate.primary.getOrElse(false)
-                    ).executeInsert()
+                    insertPluralAttributes("x509Certificates", id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary)
                 }
-                //UserDAO.insertPluralAttributes("x509Certificates", id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary).executeInsert()
         
             case None => println("x509Certificates: Do Nothing")
         }
@@ -344,7 +280,7 @@ object UserDAO {
             """.stripMargin).on(
             "userId" -> user.id
          ).as(userParser.single)
-            
+
          if ( u.id.length > 0 ) {
          
                 // tranform extra info here as well
@@ -435,118 +371,51 @@ object UserDAO {
                 user.emails match {
                     case Some(emails) =>
                         for (email <- emails) {
-                            //UserDAO.insertPluralAttributes("emails", user.id, email.value, email.`type`, email.primary).executeInsert()
-                            val tableName = "emails"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> email.value,
-                                "type"    -> email.`type`,
-                                "primary" -> email.primary.getOrElse(false)
-                            ).executeInsert()
-                            
+                            insertPluralAttributes("emails", user.id, email.value, email.`type`, email.primary)
                         }
                     case None => println("Do Nothing")
                 }
                 user.phoneNumbers match {
                     case Some(phoneNumbers) => 
                         for(phoneNumber <- phoneNumbers) {
-                            val tableName = "phoneNumbers"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> phoneNumber.value,
-                                "type"    -> phoneNumber.`type`,
-                                "primary" -> phoneNumber.primary.getOrElse(false)
-                            ).executeInsert()
-                            //UserDAO.insertPluralAttributes("phoneNumbers", user.id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary).executeInsert()
+                            insertPluralAttributes("phoneNumbers", user.id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary)
                         }
                     case None => println("Do Nothing")
                 }
                 user.ims match {
                     case Some(ims) => 
                         for(im <- ims) {
-                            val tableName = "ims"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> im.value,
-                                "type"    -> im.`type`,
-                                "primary" -> im.primary.getOrElse(false)
-                            ).executeInsert()
+                            insertPluralAttributes("ims", user.id, im.value, im.`type`, im.primary)
                         }
-                        //UserDAO.insertPluralAttributes("ims", user.id, im.value, im.`type`, im.primary).executeInsert()
                     case None => println("Do Nothing")
                 }
                 user.photos match {
                     case Some(photos) =>
                         for(photo <- photos) {
-                            val tableName = "photos"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> photo.value,
-                                "type"    -> photo.`type`,
-                                "primary" -> photo.primary.getOrElse(false)
-                            ).executeInsert()
+                            insertPluralAttributes("photos", user.id, photo.value, photo.`type`, photo.primary)
                         }
-                        //UserDAO.insertPluralAttributes("photos", user.id, photo.value, photo.`type`, photo.primary).executeInsert()
                 
                     case None => println("Do Nothing")
                 }
                 user.entitlements match {
                     case Some(entitlements) =>
                         for(entitlement <- entitlements) {
-                            val tableName = "entitlements"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> entitlement.value,
-                                "type"    -> entitlement.`type`,
-                                "primary" -> entitlement.primary.getOrElse(false)
-                            ).executeInsert()
+                            insertPluralAttributes("entitlements", user.id, entitlement.value, entitlement.`type`, entitlement.primary)
                         }
-                        //UserDAO.insertPluralAttributes("entitlements", user.id, entitlement.value, entitlement.`type`, entitlement.primary).executeInsert()
-                
                     case None => println("Do Nothing")
                 }
                 user.roles match {
                     case Some(roles) =>
                         for(role <- roles) {
-                            val tableName = "roles"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> role.value,
-                                "type"    -> role.`type`,
-                                "primary" -> role.primary.getOrElse(false)
-                            ).executeInsert()
+                           insertPluralAttributes("roles", user.id, role.value, role.`type`, role.primary)
                         } 
-                        //UserDAO.insertPluralAttributes("roles", user.id, role.value, role.`type`, role.primary).executeInsert()
-                
                     case None => println("Do Nothing")
                 }
                 user.x509Certificates match {
                     case Some(x509Certificates) =>
                         for(x509Certificate <- x509Certificates) {
-                            val tableName = "x509Certificats"
-                            SQL("""
-                            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
-                            """.stripMargin).on(
-                                "userId"  -> user.id,
-                                "value"   -> x509Certificate.value,
-                                "type"    -> x509Certificate.`type`,
-                                "primary" -> x509Certificate.primary.getOrElse(false)
-                            ).executeInsert()
+                            insertPluralAttributes("x509Certificates", user.id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary)
                         }
-                        //UserDAO.insertPluralAttributes("x509Certificates", user.id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary).executeInsert()
-                
                     case None => println("Do Nothing")
                 }
                 SQL(
@@ -598,13 +467,25 @@ object UserDAO {
         }
     }
     
-    def insertPluralAttributes(tableName: String, 
+    private def insertPluralAttributes(tableName: String, 
                              userId: String, 
                              value: String,
                              attributeType: String, 
-                             primary: Option[Boolean] = None) = {
+                             primary: Option[Boolean] = None)(implicit c : java.sql.Connection) = {
        
-        
+        SQL("""
+            INSERT IGNORE INTO """+tableName+""" (`userId`, `value`, `type`, `isPrimary`) VALUES({userId}, {value}, {type}, {primary});
+            """.stripMargin).on(
+                "userId"  -> userId,
+                "value"   -> value,
+                "type"    -> attributeType,
+                "primary" -> primary.getOrElse(false)
+            ).executeInsert()
+    }
+
+    private def getPluralAttributes(userId: String, attributeName: String)(implicit c : java.sql.Connection): Option[List[PluralAttribute]] = {
+
+        None
     }
 
 }
