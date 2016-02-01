@@ -8,10 +8,10 @@ object Name {
 }
 
 case class Name (
-                  formatted:       Option[String],
-                  familyName:      Option[String],
-                  givenName:       Option[String],
-                  middleName:      Option[String],
-                  honorificPrefix: Option[String],
-                  honorificSuffix: Option[String]
-                )
+    formatted:       Option[String] = None,
+    familyName:      Option[String] = None,
+    givenName:       Option[String] = None,
+    middleName:      Option[String] = None,
+    honorificPrefix: Option[String] = None,
+    honorificSuffix: Option[String] = None
+)

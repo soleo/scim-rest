@@ -12,7 +12,7 @@ import scala.language.implicitConversions
 
 object UserDAO {
   
-  val emailParser = str("value") ~ str("emailType") ~ get[Boolean]("isPrimary") map {
+  val emailParser = get[Option[String]]("value") ~ get[Option[String]]("emailType") ~ get[Boolean]("isPrimary") map {
       case value ~ emailType ~ isPrimary  => Email(value, emailType, Utils.optionalBoolean(isPrimary))
   }
 
@@ -469,8 +469,8 @@ object UserDAO {
     
     private def insertPluralAttributes(tableName: String, 
                              userId: String, 
-                             value: String,
-                             attributeType: String, 
+                             value: Option[String] = None,
+                             attributeType: Option[String] = None, 
                              primary: Option[Boolean] = None)(implicit c : java.sql.Connection) = {
        
         SQL("""

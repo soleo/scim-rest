@@ -2,9 +2,9 @@ package models
 
 trait PluralAttribute {
     
-    def value: String
+    def value: Option[String]
     
-    def `type`: String
+    def `type`: Option[String]
     
     def primary: Option[Boolean]
 }

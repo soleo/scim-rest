@@ -9,7 +9,7 @@ object Photo {
 
 }
 case class Photo (    
-    override val value: String,
-    override val `type`: String,
+    override val value: Option[String] = None,
+    override val `type`: Option[String] = None,
     override val primary: Option[Boolean] = None
 ) extends PluralAttribute

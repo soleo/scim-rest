@@ -8,13 +8,13 @@ object Address {
   implicit val addressFormat = Json.format[Address]
 }
 case class Address (
-    `type`: String,
-    streetAddress: String,
-    locality: String,
-    region: String,
-    postalCode: String,
-    country: String,
-    `formatted`: String,
+    `type`: Option[String] = None,
+    streetAddress: Option[String] = None,
+    locality: Option[String] = None,
+    region: Option[String] = None,
+    postalCode: Option[String] = None,
+    country: Option[String] = None,
+    `formatted`: Option[String] = None,
     primary: Option[Boolean] = None
 )
 
