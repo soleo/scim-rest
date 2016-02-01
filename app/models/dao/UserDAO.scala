@@ -84,133 +84,11 @@ object UserDAO {
             meta: Option[Meta]
             ) = {
     DB.withTransaction { implicit c =>
-      
-        val name: Name = user.name.getOrElse(Name(None, None, None, None, None, None))
-        val m: Meta = meta.getOrElse(Meta(new Date, new Date, None, None, None))
-        
-        // add base user info finally
-        SQL(
-         """
-            | INSERT IGNORE INTO `users` (
-            | `id`, `externalId`, `username`,
-            | `formattedName`, `familyName`, `givenName`, `middleName`,
-            | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
-            | `profileURL`, `title`, `userType`, `preferredLanguage`,
-            | `locale`, `timezone`, `active`, `password`, `created`, `lastModified`
-            | )
-            | VALUES
-            | (
-            | {userId}, {externalId}, {username},
-            | {formattedName}, {familyName}, {givenName}, {middleName},
-            | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
-            | {profileURL}, {title}, {userType}, {preferredLanguage},
-            | {locale}, {timezone}, {active}, {password}, {created}, {lastModified}
-            | );
-         """.stripMargin).on(
-            "userId" -> id,
-            "externalId" -> user.externalId,
-            "username" -> user.userName,
-            "formattedName" -> name.formatted,
-            "familyName" -> name.familyName,
-            "givenName" -> name.givenName,
-            "middleName" -> name.middleName,
-            "honorificPrefix" -> name.honorificPrefix,
-            "honorificSuffix" -> name.honorificSuffix,
-            "displayName" -> user.displayName,
-            "nickname" -> user.nickName,
-            "profileURL" -> user.profileUrl,
-            "title" -> user.title,
-            "userType" -> user.userType,
-            "preferredLanguage" -> user.preferredLanguage,
-            "locale" -> user.locale,
-            "timezone" -> user.timezone,
-            "active" -> user.active.getOrElse(false),
-            "password" -> user.password,
-            "created" -> m.created,
-            "lastModified" -> m.lastModified
-         ).executeInsert()
-         // insert all other info first
-        addresses match {
-            case Some(addrs) =>
-                for( addr <- addrs )
-                { 
-                    SQL("""
-                    | INSERT IGNORE INTO `addresses` (
-                    | `userId`, `type`,`streetAddress`, `locality`, 
-                    | `region`, `postalCode`, `country`, `formatted`, `isPrimary` )
-                    | VALUES(
-                    | {userId}, {type}, {streetAddress}, {locality}, 
-                    | {region}, {postalCode}, {country}, {formatted}, {primary}
-                    | );
-                    """.stripMargin).on(
-                             "userId" -> id,
-                             "type" -> addr.`type`,
-                             "streetAddress"  -> addr.streetAddress,
-                             "locality" -> addr.locality,
-                             "region" -> addr.region,
-                             "postalCode" -> addr.postalCode,
-                             "country" -> addr.country,
-                             "formatted" -> addr.`formatted`,
-                             "primary" -> addr.primary.getOrElse(false)
-                    ).executeInsert()
-                }
-            case None => println("addresses: Do Nothing")
-        }
-        
-        emails match {
-            case Some(emails) =>
-                for (email:Email <- emails) {
-                    insertPluralAttributes("emails", id, email.value, email.`type`, email.primary)
-                }
-            case None => println("emails: Do Nothing")
-        }
-        phoneNumbers match {
-            case Some(phoneNumbers) => 
-                for(phoneNumber <- phoneNumbers) {
-                    insertPluralAttributes("phoneNumbers", id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary)
-                }
-            case None => println("phoneNumbers: Do Nothing")
-        }
-        ims match {
-            case Some(ims) => 
-                for(im <- ims) {
-                    insertPluralAttributes("ims", id, im.value, im.`type`, im.primary)
-                }
-            case None => println("ims: Do Nothing")
-        }
-        photos match {
-            case Some(photos) =>
-                for(photo <- photos) {
-                    insertPluralAttributes("photos", id, photo.value, photo.`type`, photo.primary)
-                }
-        
-            case None => println("photos: Do Nothing")
-        }
-        entitlements match {
-            case Some(entitlements) =>
-                for(entitlement <- entitlements) {
-                    insertPluralAttributes("entitlements", id, entitlement.value, entitlement.`type`, entitlement.primary)
-                }
-        
-            case None => println("entitlements: Do Nothing")
-        }
-        roles match {
-            case Some(roles) =>
-                for(role <- roles) {
-                   insertPluralAttributes("roles", id, role.value, role.`type`, role.primary)
-                }
-        
-            case None => println("roles: Do Nothing")
-        }
-        x509Certificates match {
-            case Some(x509Certificates) =>
-                for(x509Certificate <- x509Certificates) {
-                    insertPluralAttributes("x509Certificates", id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary)
-                }
-        
-            case None => println("x509Certificates: Do Nothing")
-        }
-         
+
+      createWithConnection(id, user, emails, phoneNumbers, ims, 
+                          photos, addresses, groups, entitlements, 
+                          roles, x509Certificates, meta)   
+    
     }
   }
 
@@ -339,125 +217,9 @@ object UserDAO {
                 //UserDAO.create(user.id, user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos,
                 //            user.addresses, user.groups, user.entitlements, user.roles, user.x509Certificates)
                 // a repeat of create function but maybe should be in a util function
-                val name: Name = user.baseUser.name.getOrElse( Name(None, None, None, None, None, None))
-                val m: Meta = user.meta.getOrElse(Meta(new Date, new Date, None, None, None))
-                user.addresses match {
-                    case Some(addrs) =>
-                        for( addr <- addrs )
-                        { 
-                            SQL("""
-                            | INSERT IGNORE INTO `addresses` (
-                            | `userId`, `type`,`streetAddress`, `locality`, 
-                            | `region`, `postalCode`, `country`, `formatted`, `isPrimary` )
-                            | VALUES(
-                            | {userId}, {type}, {streetAddress}, {locality}, 
-                            | {region}, {postalCode}, {country}, {formatted}, {primary}
-                            | );
-                            """.stripMargin).on(
-                                     "userId" -> user.id,
-                                     "type" -> addr.`type`,
-                                     "streetAddress"  -> addr.streetAddress,
-                                     "locality" -> addr.locality,
-                                     "region" -> addr.region,
-                                     "postalCode" -> addr.postalCode,
-                                     "country" -> addr.country,
-                                     "formatted" -> addr.`formatted`,
-                                     "primary" -> addr.primary.getOrElse(false)
-                            ).executeInsert()
-                        }
-                    case None => println("Do Nothing")
-                }
-                
-                user.emails match {
-                    case Some(emails) =>
-                        for (email <- emails) {
-                            insertPluralAttributes("emails", user.id, email.value, email.`type`, email.primary)
-                        }
-                    case None => println("Do Nothing")
-                }
-                user.phoneNumbers match {
-                    case Some(phoneNumbers) => 
-                        for(phoneNumber <- phoneNumbers) {
-                            insertPluralAttributes("phoneNumbers", user.id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary)
-                        }
-                    case None => println("Do Nothing")
-                }
-                user.ims match {
-                    case Some(ims) => 
-                        for(im <- ims) {
-                            insertPluralAttributes("ims", user.id, im.value, im.`type`, im.primary)
-                        }
-                    case None => println("Do Nothing")
-                }
-                user.photos match {
-                    case Some(photos) =>
-                        for(photo <- photos) {
-                            insertPluralAttributes("photos", user.id, photo.value, photo.`type`, photo.primary)
-                        }
-                
-                    case None => println("Do Nothing")
-                }
-                user.entitlements match {
-                    case Some(entitlements) =>
-                        for(entitlement <- entitlements) {
-                            insertPluralAttributes("entitlements", user.id, entitlement.value, entitlement.`type`, entitlement.primary)
-                        }
-                    case None => println("Do Nothing")
-                }
-                user.roles match {
-                    case Some(roles) =>
-                        for(role <- roles) {
-                           insertPluralAttributes("roles", user.id, role.value, role.`type`, role.primary)
-                        } 
-                    case None => println("Do Nothing")
-                }
-                user.x509Certificates match {
-                    case Some(x509Certificates) =>
-                        for(x509Certificate <- x509Certificates) {
-                            insertPluralAttributes("x509Certificates", user.id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary)
-                        }
-                    case None => println("Do Nothing")
-                }
-                SQL(
-                 """
-                    | INSERT IGNORE INTO `users` (
-                    | `id`, `externalId`, `username`,
-                    | `formattedName`, `familyName`, `givenName`, `middleName`,
-                    | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
-                    | `profileURL`, `title`, `userType`, `preferredLanguage`,
-                    | `locale`, `timezone`, `active`, `password`, `created`, `lastModified`
-                    | )
-                    | VALUES
-                    | (
-                    | {userId}, {externalId}, {username},
-                    | {formattedName}, {familyName}, {givenName}, {middleName},
-                    | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
-                    | {profileURL}, {title}, {userType}, {preferredLanguage},
-                    | {locale}, {timezone}, {active}, {password}, {created}, {lastModified}
-                    | );
-                 """.stripMargin).on(
-                    "userId" -> user.id,
-                    "externalId" -> user.baseUser.externalId,
-                    "username" -> user.baseUser.userName,
-                    "formattedName" -> name.formatted,
-                    "familyName" -> name.familyName,
-                    "givenName" -> name.givenName,
-                    "middleName" -> name.middleName,
-                    "honorificPrefix" -> name.honorificPrefix,
-                    "honorificSuffix" -> name.honorificSuffix,
-                    "displayName" -> user.baseUser.displayName,
-                    "nickname" -> user.baseUser.nickName,
-                    "profileURL" -> user.baseUser.profileUrl,
-                    "title" -> user.baseUser.title,
-                    "userType" -> user.baseUser.userType,
-                    "preferredLanguage" -> user.baseUser.preferredLanguage,
-                    "locale" -> user.baseUser.locale,
-                    "timezone" -> user.baseUser.timezone,
-                    "active" -> user.baseUser.active.getOrElse(false),
-                    "password" -> user.baseUser.password,
-                    "created" -> m.created,
-                    "lastModified" -> m.lastModified
-                 ).executeInsert()
+                createWithConnection(user.id, user.baseUser, user.emails, user.phoneNumbers, user.ims, 
+                          user.photos, user.addresses, user.groups, user.entitlements, 
+                          user.roles, user.x509Certificates, user.meta)
             }
         }
         
@@ -487,5 +249,147 @@ object UserDAO {
 
         None
     }
+
+    private def createWithConnection(
+            id: String, 
+            user: BaseUser, 
+            emails: Option[List[Email]], 
+            phoneNumbers: Option[List[PhoneNumber]],
+            ims: Option[List[Im]],
+            photos: Option[List[Photo]],
+            addresses: Option[List[Address]],
+            groups: Option[List[Group]],
+            entitlements: Option[List[Entitlement]],
+            roles: Option[List[Role]],
+            x509Certificates: Option[List[X509Certificate]],
+            meta: Option[Meta])(implicit c : java.sql.Connection) = {
+              
+        val name: Name = user.name.getOrElse(Name(None, None, None, None, None, None))
+        val m: Meta = meta.getOrElse(Meta(new Date, new Date, None, None, None))
+        
+        // add base user info finally
+        SQL(
+         """
+            | INSERT IGNORE INTO `users` (
+            | `id`, `externalId`, `username`,
+            | `formattedName`, `familyName`, `givenName`, `middleName`,
+            | `honorificPrefix`, `honorificSuffix`, `displayName`, `nickname`,
+            | `profileURL`, `title`, `userType`, `preferredLanguage`,
+            | `locale`, `timezone`, `active`, `password`, `created`, `lastModified`
+            | )
+            | VALUES
+            | (
+            | {userId}, {externalId}, {username},
+            | {formattedName}, {familyName}, {givenName}, {middleName},
+            | {honorificPrefix}, {honorificSuffix}, {displayName}, {nickname},
+            | {profileURL}, {title}, {userType}, {preferredLanguage},
+            | {locale}, {timezone}, {active}, {password}, {created}, {lastModified}
+            | );
+         """.stripMargin).on(
+            "userId" -> id,
+            "externalId" -> user.externalId,
+            "username" -> user.userName,
+            "formattedName" -> name.formatted,
+            "familyName" -> name.familyName,
+            "givenName" -> name.givenName,
+            "middleName" -> name.middleName,
+            "honorificPrefix" -> name.honorificPrefix,
+            "honorificSuffix" -> name.honorificSuffix,
+            "displayName" -> user.displayName,
+            "nickname" -> user.nickName,
+            "profileURL" -> user.profileUrl,
+            "title" -> user.title,
+            "userType" -> user.userType,
+            "preferredLanguage" -> user.preferredLanguage,
+            "locale" -> user.locale,
+            "timezone" -> user.timezone,
+            "active" -> user.active.getOrElse(false),
+            "password" -> user.password,
+            "created" -> m.created,
+            "lastModified" -> m.lastModified
+         ).executeInsert()
+         // insert all other info first
+        addresses match {
+            case Some(addrs) =>
+                for( addr <- addrs )
+                { 
+                    SQL("""
+                    | INSERT IGNORE INTO `addresses` (
+                    | `userId`, `type`,`streetAddress`, `locality`, 
+                    | `region`, `postalCode`, `country`, `formatted`, `isPrimary` )
+                    | VALUES(
+                    | {userId}, {type}, {streetAddress}, {locality}, 
+                    | {region}, {postalCode}, {country}, {formatted}, {primary}
+                    | );
+                    """.stripMargin).on(
+                             "userId" -> id,
+                             "type" -> addr.`type`,
+                             "streetAddress"  -> addr.streetAddress,
+                             "locality" -> addr.locality,
+                             "region" -> addr.region,
+                             "postalCode" -> addr.postalCode,
+                             "country" -> addr.country,
+                             "formatted" -> addr.`formatted`,
+                             "primary" -> addr.primary.getOrElse(false)
+                    ).executeInsert()
+                }
+            case None => println("addresses: Do Nothing")
+        }
+        
+        emails match {
+            case Some(emails) =>
+                for (email:Email <- emails) {
+                    insertPluralAttributes("emails", id, email.value, email.`type`, email.primary)
+                }
+            case None => println("emails: Do Nothing")
+        }
+        phoneNumbers match {
+            case Some(phoneNumbers) => 
+                for(phoneNumber <- phoneNumbers) {
+                    insertPluralAttributes("phoneNumbers", id, phoneNumber.value, phoneNumber.`type`, phoneNumber.primary)
+                }
+            case None => println("phoneNumbers: Do Nothing")
+        }
+        ims match {
+            case Some(ims) => 
+                for(im <- ims) {
+                    insertPluralAttributes("ims", id, im.value, im.`type`, im.primary)
+                }
+            case None => println("ims: Do Nothing")
+        }
+        photos match {
+            case Some(photos) =>
+                for(photo <- photos) {
+                    insertPluralAttributes("photos", id, photo.value, photo.`type`, photo.primary)
+                }
+        
+            case None => println("photos: Do Nothing")
+        }
+        entitlements match {
+            case Some(entitlements) =>
+                for(entitlement <- entitlements) {
+                    insertPluralAttributes("entitlements", id, entitlement.value, entitlement.`type`, entitlement.primary)
+                }
+        
+            case None => println("entitlements: Do Nothing")
+        }
+        roles match {
+            case Some(roles) =>
+                for(role <- roles) {
+                   insertPluralAttributes("roles", id, role.value, role.`type`, role.primary)
+                }
+        
+            case None => println("roles: Do Nothing")
+        }
+
+        x509Certificates match {
+            case Some(x509Certificates) =>
+                for(x509Certificate <- x509Certificates) {
+                    insertPluralAttributes("x509Certificates", id, x509Certificate.value, x509Certificate.`type`, x509Certificate.primary)
+                }
+        
+            case None => println("x509Certificates: Do Nothing")
+        }
+  }
 
 }

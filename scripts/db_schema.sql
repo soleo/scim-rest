@@ -37,7 +37,7 @@ CREATE TABLE users (
 
 CREATE TABLE emails (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) not null,
+    value     varchar(50),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
@@ -48,7 +48,7 @@ CREATE TABLE emails (
 
 CREATE TABLE phoneNumbers (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) not null,
+    value     varchar(50),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
@@ -59,7 +59,7 @@ CREATE TABLE phoneNumbers (
 
 CREATE TABLE ims (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) not null,
+    value     varchar(50),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
@@ -70,12 +70,12 @@ CREATE TABLE ims (
 
 CREATE TABLE photos (
     id        SERIAL PRIMARY KEY,
-    value     varchar(2000) not null,
+    value     varchar(2000),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
     operation varchar(20),
-    userId    varchar(36) not null,
+    userId    varchar(36),
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
@@ -115,7 +115,7 @@ CREATE TABLE groups_users (
 
 CREATE TABLE entitlements (
     id        SERIAL PRIMARY KEY,
-    value     varchar(50) not null,
+    value     varchar(50),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
@@ -126,7 +126,7 @@ CREATE TABLE entitlements (
 
 CREATE TABLE roles (
     id        integer PRIMARY KEY,
-    value     varchar(50) not null,
+    value     varchar(50),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),
@@ -137,7 +137,7 @@ CREATE TABLE roles (
 
 CREATE TABLE x509Certificates (
     id        SERIAL PRIMARY KEY,
-    value     varchar(250) not null,
+    value     varchar(250),
     display   varchar(50),
     isPrimary boolean,
     type      varchar(20),

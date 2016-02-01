@@ -9,7 +9,7 @@ object Role {
 }
 
 case class Role(    
-    override val value: Option[String],
-    override val `type`: Option[String],
+    override val value: Option[String] = None,
+    override val `type`: Option[String] = None,
     override val primary: Option[Boolean] = None
 ) extends PluralAttribute
