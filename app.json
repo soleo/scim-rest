@@ -2,5 +2,5 @@
   "name": "SCIM RESTful Service",
   "description": "A simple partial implentation of SCIM protocol v1.1",
   "image": "heroku/scala",
-  "addons": [ "heroku-postgresql" ]
+  "addons": [ "jawsdb" ]
 }
