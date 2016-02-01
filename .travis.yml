@@ -11,7 +11,7 @@ notifications:
 jdk:
 - oraclejdk8
 before_install:
-- mysql -e "create database IF NOT EXISTS default;" -uroot
+- mysql -e "CREATE DATABASE IF NOT EXISTS `default`;" -uroot
 services:
 - mysql
 env:
