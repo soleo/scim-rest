@@ -67,9 +67,18 @@ object FilterParser extends JavaTokenParsers with FilterSyntax {
           case Error(msg, _) => throw new IllegalArgumentException("Error\n" + msg)
         }
   }
-   def evaluate(text: String) : String = {
-       "???"
-   }
+   
+  def evaluate(text: String) : String = {
+       // @TODO
+       // map those operations to SQL 
+       // startsWith should be X LIKE "%Y"
+       // contains should be X LIKE "%Y%"
+       // equal should be X = "Y"
+       // and would be AND
+       // or would be OR
+       // etc.
+       ""
+  }
 }
 
 

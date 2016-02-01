@@ -1,0 +1,69 @@
+{
+  schemas: ['urn:scim:schemas:core:1.0'],
+  id: '{{guid()}}',
+  externalId: '{{lorem(1, "words")}}',
+  name: {
+     familyName: '{{surname()}}',
+     givenName: '{{firstName()}}',
+     middleName: '{{firstName()}}',
+     honorificPrefix: '{{random("Mr.", "Mrs.", "Ms.", "Miss.", "Dr.")}}',
+     honorificSuffix: '{{random("I", "II", "III")}}',
+     formatted: '{{random("Mr.", "Mrs.", "Ms.", "Miss.", "Dr.")}} {{firstName()}} {{firstName()}} {{surname()}} {{random("I", "II", "III")}}'
+   
+  },
+  userName: '{{email()}}',
+  displayName: '{{firstName()}} {{surname()}}',
+  nickName: '{{firstName()}}',
+  profileUrl: 'https://example.com/{{firstName()}}.{{surname()}}',
+  emails: [
+        {
+            'value': '{{email()}}',
+            'type': 'work',
+            'primary': true
+        },
+        {
+          'value': '{{email(true)}}',
+          'type': 'home'
+        }
+    ],
+  phoneNumbers: [
+        {
+            'value': '{{phone("xxx-xxx-xxxx")}}',
+            'type': 'work',
+            'primary': true
+        },
+        {
+          'value': '{{phone("xxx-xxx-xxxx")}}',
+          'type': 'mobile'
+        }
+    ],
+  addresses: [
+        {
+            'type': 'work',
+            'streetAddress': '{{integer(100, 999)}} {{street()}}',
+            'locality': '{{city()}}',
+            'region': '{{state()}}',
+            'country': '{{country()}}',
+            'postalCode': '{{integer(10000, 100000)}}',
+            'formatted': '{{integer(100, 999)}} {{street()}}\n{{city()}}, {{state()}} {{integer(10000, 100000)}} {{country()}}', 
+            'primary': true
+        },
+        {
+            'type': 'home',
+            'streetAddress': '{{integer(100, 999)}} {{street()}}',
+            'locality': '{{city()}}',
+            'region': '{{state()}}',
+            'country': '{{country()}}',
+            'postalCode': '{{integer(10000, 100000)}}',
+            'formatted': '{{integer(100, 999)}} {{street()}}\n{{city()}}, {{state()}} {{integer(10000, 100000)}} {{country()}}' 
+            
+        }
+    ],
+  userType: '{{random("Employees", "Contractor", "Intern", "Temp", "External", "Unknown")}}',
+  title: '{{random("CEO", "Tour Guide", "CTO", "Developer", "Designer", "Saler", "Vice President")}}',
+  preferredLanguage:'{{random("en_US", "en_IO", "zh_CN")}}',
+  locale: '{{random("en_US", "en_IO", "zh_CN")}}',
+  timezone: '{{random("America/Los_Angeles", "America/Chicago", "America/New_York")}}',
+  active:'{{bool()}}',
+  password:'{{lorem(1, "words")}}{{lorem(1, "words")}}'
+}
