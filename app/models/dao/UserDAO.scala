@@ -14,18 +14,47 @@ object UserDAO {
   val emailParser = str("value") ~ str("emailType") ~ get[Boolean]("isPrimary") map {
       case value ~ emailType ~ isPrimary  => Email(value, emailType, Utils.optionalBoolean(isPrimary))
   }
+
+  val userParser  = {
+                       str("id") ~ str("username") ~ get[Option[String]]("formattedName") ~ 
+                       get[Option[String]]("familyName") ~ get[Option[String]]("givenName") ~
+                       get[Option[String]]("middleName") ~ get[Option[String]]("honorificPrefix") ~ 
+                       get[Option[String]]("honorificSuffix") ~
+                       get[Option[String]]("externalId") ~ get[Option[String]]("displayName") ~
+                       get[Option[String]]("nickname") ~ get[Option[String]]("profileURL") ~
+                       get[Option[String]]("title") ~ get[Option[String]]("userType") ~
+                       get[Option[String]]("preferredLanguage") ~ get[Option[String]]("locale") ~
+                       get[Option[String]]("timezone") ~ get[Option[Boolean]]("active") ~
+                       get[Date]("created") ~ get[Date]("lastModified") map {
+                         case id ~ username ~ formattedName ~ familyName ~ givenName ~ middleName ~ honorificPrefix ~ honorificSuffix ~
+                             externalId ~ displayName ~ nickname ~ profileURL ~ title ~ userType ~ preferredLanguage ~ locale ~ timezone ~
+                                active ~ created ~ lastModified => 
+                            val name = Name(formattedName, familyName, givenName, middleName, honorificPrefix, honorificSuffix)
+                            val nameField = name match {
+                                case Name(None, None, None, None, None, None) => None
+                                case _ => Some(name)
+                            }
+                            val baseUser = BaseUser(username, externalId, nameField, displayName,
+                                nickname, profileURL, title, userType, preferredLanguage, locale, timezone,
+                                active, None/*Leave password alone*/)
+                            val meta = Meta(created,lastModified)
+                            User(id, baseUser, None, None, None, None, None, None, None, None, None, Some(meta))
+                         
+                         
+                      }
+                    }
   
   def exists(user: User): Boolean =  {
         DB.withConnection { implicit c =>
             val userName = user.baseUser.userName
-            val result = if(userName.length <= 0) {
+            val numMatches: Int = if(userName.length <= 0) {
                 SQL("""
                     | SELECT COUNT(*) as numMatches
                     | FROM `users`
                     | WHERE id={userId};
                 """.stripMargin).on(
                     "userId" -> user.id
-                ).apply().head
+                ).as(SqlParser.int("numMatches").single)
             } else {
                SQL("""
                 | SELECT COUNT(*) as numMatches
@@ -33,10 +62,10 @@ object UserDAO {
                 | WHERE username={userName};
                 """.stripMargin).on(
                     "userName" -> userName
-                ).apply().head
+                ).as(SqlParser.int("numMatches").single)
             }
     
-            result[Int]("numMatches") != 0
+            numMatches != 0
         }
   }
   
@@ -266,131 +295,74 @@ object UserDAO {
  def findAll(filter: Option[String]): List[User] = {
     DB.withTransaction { implicit c =>
      // parse filter to see if we can deal with it
-     val filterSql = filter match{
-         case Some(f) => {
-            val parsedObj = FilterParser.parse(f.trim.toLowerCase)
-            println(parsedObj)
-            ""
-         }
-         case None => ""
-     }
+        val filterSql = filter match{
+             case Some(f) => {
+                val parsedObj = FilterParser.parse(f.trim.toLowerCase)
+                println(parsedObj)
+                ""
+             }
+             case None => ""
+        }
     
-     var results = SQL(
+        val users: List[User] = SQL(
         """
          | SELECT *
          | FROM `users`;
-        """.stripMargin).on(
-     //   "userId" -> user.id
-     ).apply()
+        """.stripMargin).as(userParser.*)
 
-      results.map { row =>
-        val name = Name(
-                      Utils.removeEmptyString(row[Option[String]]("formattedName")), 
-                      Utils.removeEmptyString(row[Option[String]]("familyName")),
-                      Utils.removeEmptyString(row[Option[String]]("givenName")),
-                      Utils.removeEmptyString(row[Option[String]]("middleName")),
-                      Utils.removeEmptyString(row[Option[String]]("honorificPrefix")),
-                      Utils.removeEmptyString(row[Option[String]]("honorificSuffix"))
-                      )
-        val nameField = name match{
-            case Name(None, None, None, None, None, None) => None
-            case _ => Some(name)
+         // add more sauce to them
+        import scala.collection.mutable.ListBuffer
+                      
+        var completeUsers = ListBuffer[User]()
+        for(user <- users) {
+             val emails : List[Email] = SQL(
+                """
+                    | SELECT value, type as emailType, isPrimary
+                    | FROM `emails`
+                    | WHERE `userId` = {userId};
+                """.stripMargin).on(
+                    "userId" -> user.id
+                ).as(emailParser.*)
+             val e = if (emails.isEmpty) None else Some(emails)
+             val singleUser = User(user.id, user.baseUser, e, None, None, None, None, None, None, None, None, user.meta)
+             completeUsers += singleUser
         }
-        val baseUser = BaseUser(
-            row[String]("username"), 
-            Utils.removeEmptyString(row[Option[String]]("externalId")) ,
-            nameField,
-            Utils.removeEmptyString(row[Option[String]]("displayName")),
-            Utils.removeEmptyString(row[Option[String]]("nickname")),
-            Utils.removeEmptyString(row[Option[String]]("profileURL")),
-            Utils.removeEmptyString(row[Option[String]]("title")),
-            Utils.removeEmptyString(row[Option[String]]("userType")),
-            Utils.removeEmptyString(row[Option[String]]("preferredLanguage")),
-            Utils.removeEmptyString(row[Option[String]]("locale")),
-            Utils.removeEmptyString(row[Option[String]]("timezone")),
-            (row[Option[Boolean]]("active")),
-            None// Leave password alone
-            )
-        val meta = Meta(
-            row[Date]("created"),
-            row[Date]("lastModified")
-            )
-            
-        // get all emails belong to that user
-        val emails: List[Email] = SQL(
-                                    """
-                                        | SELECT value, type as emailType, isPrimary
-                                        | FROM `emails`
-                                        | WHERE `userId` = {userId};
-                                    """.stripMargin).on(
-                                        "userId" -> row[String]("id")
-                                    ).as(emailParser.*)
-        //println(emails)
-        val emailsOption = if(emails.isEmpty) None else Some(emails)
-        // get all groups
-        
-        User(row[String]("id"), baseUser, emailsOption, None, None, None, None, None, None, None, None, Some(meta))
-      }.force.toList
+        completeUsers.toList
+
     }
  }
  
  def findOne(user: User): List[User] = {
     DB.withTransaction { implicit c =>
-     // Find One and Map Anything related to that user
-     var results = SQL(
-        """
-         | SELECT *
-         | FROM `users`
-         | WHERE `id`={userId}
-         | LIMIT 1;
-        """.stripMargin).on(
-        "userId" -> user.id
-     ).apply()
-
-      results.map { row =>
-        val name = Name(
-                      Utils.removeEmptyString(row[Option[String]]("formattedName")), 
-                      Utils.removeEmptyString(row[Option[String]]("familyName")),
-                      Utils.removeEmptyString(row[Option[String]]("givenName")),
-                      Utils.removeEmptyString(row[Option[String]]("middleName")),
-                      Utils.removeEmptyString(row[Option[String]]("honorificPrefix")),
-                      Utils.removeEmptyString(row[Option[String]]("honorificSuffix"))
-                      )
-        val nameField = name match{
-            case Name(None, None, None, None, None, None) => None
-            case _ => Some(name)
-        }
-        val baseUser = BaseUser(
-            row[String]("username"), 
-            Utils.removeEmptyString(row[Option[String]]("externalId")) ,
-            nameField,
-            Utils.removeEmptyString(row[Option[String]]("displayName")),
-            Utils.removeEmptyString(row[Option[String]]("nickname")),
-            Utils.removeEmptyString(row[Option[String]]("profileURL")),
-            Utils.removeEmptyString(row[Option[String]]("title")),
-            Utils.removeEmptyString(row[Option[String]]("userType")),
-            Utils.removeEmptyString(row[Option[String]]("preferredLanguage")),
-            Utils.removeEmptyString(row[Option[String]]("locale")),
-            Utils.removeEmptyString(row[Option[String]]("timezone")),
-            (row[Option[Boolean]]("active")),
-            None// Leave password alone
-            )
-        val meta = Meta(
-            row[Date]("created"),
-            row[Date]("lastModified")
-            )
-        val emails: List[Email] = SQL(
-                                    """
-                                        | SELECT value, type as emailType, isPrimary
-                                        | FROM `emails`
-                                        | WHERE `userId` = {userId};
-                                    """.stripMargin).on(
-                                        "userId" -> row[String]("id")
-                                    ).as(emailParser.*)
-        //println(emails)
-        val emailsOption = if(emails.isEmpty) None else Some(emails)
-        User(row[String]("id"), baseUser, emailsOption, None, None, None, None, None, None, None, None, Some(meta))
-      }.force.toList
+        // Find One and Map Anything related to that user
+         val u: User = SQL(
+            """
+             | SELECT *
+             | FROM `users`
+             | WHERE `id`={userId}
+             | LIMIT 1;
+            """.stripMargin).on(
+            "userId" -> user.id
+         ).as(userParser.single)
+            
+         if ( u.id.length > 0 ) {
+         
+                // tranform extra info here as well
+                val emails : List[Email] = SQL(
+                """
+                    | SELECT value, type as emailType, isPrimary
+                    | FROM `emails`
+                    | WHERE `userId` = {userId};
+                """.stripMargin).on(
+                    "userId" -> u.id
+                ).as(emailParser.*)
+                val e = if (emails.isEmpty) None else Some(emails)
+                val userWithExtraInfo = User(u.id, u.baseUser, e, None, None, None, None, None, None, None, None, u.meta)
+                List(userWithExtraInfo)            
+         }else{
+            List(User("", BaseUser("")))
+         }
+        
      
     }
  }
