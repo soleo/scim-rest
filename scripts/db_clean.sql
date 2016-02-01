@@ -1,3 +1,3 @@
-DROP DATABASE `scim_test`;
+DROP DATABASE IF EXISTS`scim_test`;
 
-DROP USER 'scim_test'@'localhost';
+DROP USER IF NOT EXISTS 'scim_test'@'localhost';
