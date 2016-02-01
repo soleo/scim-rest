@@ -5,13 +5,13 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 
-object Im extends PluralAttribute {
+object Im {
    implicit val imFormat = Json.format[Im]
 
 }
 
-case class Im (
-                value: String,
-                `type`: String,
-               primary: Option[Boolean] = None
-              )
+case class Im (    
+    override val value: String,
+    override val `type`: String,
+    override val primary: Option[Boolean] = None
+) extends PluralAttribute

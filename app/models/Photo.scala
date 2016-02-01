@@ -4,12 +4,12 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
-object Photo extends PluralAttribute {
+object Photo {
   implicit val photoFormat = Json.format[Photo]
 
 }
-case class Photo (
-                   value: String,
-                   `type`: String,
-                   primary: Option[Boolean] = None
-                 )
+case class Photo (    
+    override val value: String,
+    override val `type`: String,
+    override val primary: Option[Boolean] = None
+) extends PluralAttribute

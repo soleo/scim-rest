@@ -5,13 +5,13 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
-object Entitlement extends PluralAttribute {
+object Entitlement {
     implicit val entitlementFormat = Json.format[Entitlement]
 
 }
 
 case class Entitlement (
-                         value: String,
-                         `type`: String,
-                         primary: Option[Boolean] = None
-                       )
+    override val value: String,
+    override val `type`: String,
+    override val primary: Option[Boolean] = None
+) extends PluralAttribute

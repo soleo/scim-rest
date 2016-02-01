@@ -2,13 +2,12 @@ package models
 
 import play.api.libs.json.Json
 
-object X509Certificate extends PluralAttribute {
-  implicit val x509CertificateFormat = Json.format[X509Certificate]
+object X509Certificate {
+    implicit val x509CertificateFormat = Json.format[X509Certificate]
 }
 
-
 case class X509Certificate (
-                             value: String,
-                             `type`: String,
-                             primary: Option[Boolean] = None
-                           )
+    override val value: String,
+    override val `type`: String,
+    override val primary: Option[Boolean] = None
+) extends PluralAttribute

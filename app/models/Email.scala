@@ -5,9 +5,8 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.data.validation._
 
-object Email extends PluralAttribute {
+object Email {
   
- 
   implicit val emailReads: Reads[Email] = (
       (__ \ "value").read[String](email) and
       (__ \ "type").read[String] and
@@ -23,7 +22,7 @@ object Email extends PluralAttribute {
 }
 
 case class Email(
-                  value : String,
-                  `type`: String,
-                  primary: Option[Boolean] = None
-                )
+    override val value: String,
+    override val `type`: String,
+    override val primary: Option[Boolean] = None
+) extends PluralAttribute
