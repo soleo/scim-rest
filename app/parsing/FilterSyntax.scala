@@ -3,6 +3,7 @@ package parsing
 trait FilterSyntax {
 
   sealed abstract class Expression
+  
   case class StringLiteral(s: String) extends Expression
   
   case class Equal(e1: Expression, e2: Expression) extends Expression

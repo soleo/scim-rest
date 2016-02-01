@@ -11,7 +11,7 @@ object Global extends WithFilters() {
   }
 
   override def onStop(app: Application) {
-    Logger.info("Application shutdown...")
+    Logger.info("Application shutdown.....")
   }
 
 }

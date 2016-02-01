@@ -10,8 +10,6 @@ object FilterParser extends JavaTokenParsers with FilterSyntax {
   def attributeName:Parser[StringLiteral] = """(emails|title|username|usertype)""".r ^^ {
       case s => new StringLiteral(s) 
   }
-  
- 
 
   def attributeValue:Parser[StringLiteral] = stringLiteral ^^ {
      case str => new StringLiteral(str.substring(1, str.length - 1))
@@ -61,7 +59,7 @@ object FilterParser extends JavaTokenParsers with FilterSyntax {
 
   def parse(text:String): FilterParser.Expression = {
        
-		parseAll(expr, text) match {
+    parseAll(expr, text) match {
           case Success(t, _) => t
           case Failure(msg, in) => throw new IllegalArgumentException("Failure\n"+in+"\n" + msg)
           case Error(msg, _) => throw new IllegalArgumentException("Error\n" + msg)
