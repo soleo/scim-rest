@@ -1,5 +1,5 @@
 # --- !Ups
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id                varchar(36) not null PRIMARY KEY,
     externalId        varchar(36),
     username          varchar(20) unique not null,
@@ -23,7 +23,7 @@ CREATE TABLE users (
     lastModified      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE emails (
+CREATE TABLE IF NOT EXISTS emails (
     id        SERIAL PRIMARY KEY,
     value     varchar(50) not null,
     display   varchar(50),
@@ -34,7 +34,7 @@ CREATE TABLE emails (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE phoneNumbers (
+CREATE TABLE IF NOT EXISTS phoneNumbers (
     id        SERIAL PRIMARY KEY,
     value     varchar(50) not null,
     display   varchar(50),
@@ -45,7 +45,7 @@ CREATE TABLE phoneNumbers (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE ims (
+CREATE TABLE IF NOT EXISTS ims (
     id        SERIAL PRIMARY KEY,
     value     varchar(50) not null,
     display   varchar(50),
@@ -56,7 +56,7 @@ CREATE TABLE ims (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE photos (
+CREATE TABLE IF NOT EXISTS photos (
     id        SERIAL PRIMARY KEY,
     value     varchar(2000) not null,
     display   varchar(50),
@@ -67,7 +67,7 @@ CREATE TABLE photos (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE addresses (
+CREATE TABLE IF NOT EXISTS addresses (
     id            SERIAL PRIMARY KEY,
     value         varchar(250),
     display       varchar(50),
@@ -85,7 +85,7 @@ CREATE TABLE addresses (
 ) ENGINE=InnoDB;
 
 
-CREATE TABLE groups (
+CREATE TABLE IF NOT EXISTS groups (
     id            varchar(36) not null PRIMARY KEY, /** UUID of the group **/
     displayName   varchar(50),
     type          varchar(20),
@@ -93,7 +93,7 @@ CREATE TABLE groups (
     lastModified      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE groups_users (
+CREATE TABLE IF NOT EXISTS groups_users (
     id        SERIAL PRIMARY KEY,
     userId    varchar(36) not null,
     groupId   varchar(36) not null,
@@ -101,7 +101,7 @@ CREATE TABLE groups_users (
     FOREIGN KEY (groupId) REFERENCES groups(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE entitlements (
+CREATE TABLE IF NOT EXISTS entitlements (
     id        SERIAL PRIMARY KEY,
     value     varchar(50) not null,
     display   varchar(50),
@@ -112,7 +112,7 @@ CREATE TABLE entitlements (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
     id        integer PRIMARY KEY,
     value     varchar(50) not null,
     display   varchar(50),
@@ -123,7 +123,7 @@ CREATE TABLE roles (
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE x509Certificates (
+CREATE TABLE IF NOT EXISTS x509Certificates (
     id        SERIAL PRIMARY KEY,
     value     varchar(250) not null,
     display   varchar(50),
@@ -165,15 +165,15 @@ INSERT IGNORE INTO `groups_users` (
 );
 
 # --- !Downs
-DROP TABLE groups_users;
-DROP TABLE emails;
-DROP TABLE phoneNumbers;
-DROP TABLE ims;
-DROP TABLE photos;
-DROP TABLE addresses;
-DROP TABLE groups;
-DROP TABLE entitlements;
-DROP TABLE roles;
-DROP TABLE x509Certificates;
-DROP TABLE users;
+DROP TABLE IF EXISTS groups_users;
+DROP TABLE IF EXISTS emails;
+DROP TABLE IF EXISTS phoneNumbers;
+DROP TABLE IF EXISTS ims;
+DROP TABLE IF EXISTS photos;
+DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS entitlements;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS x509Certificates;
+DROP TABLE IF EXISTS users;
 
