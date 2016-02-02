@@ -9,6 +9,7 @@ import play.api.libs.json._
 
 @RunWith(classOf[JUnitRunner])
 class GroupControllerSpec extends Specification {
+   sequential
 
   "GroupController" should {
     val headers = FakeHeaders(Seq("Content-type" -> "application/json", "Authorization" -> "Basic c2hhb3hpbmppYW5nQGdtYWlsLmNvbToxMjM0NTY="))
@@ -29,6 +30,33 @@ class GroupControllerSpec extends Specification {
         contentType(f) must beSome("application/json")
         val resultString = contentAsString(f)
         resultString must contain ("Developer")
+    }
+
+    "patch one group to remove one member" in new WithApplication{
+        val groupAsJson = Json.obj(
+                "schemas" -> Json.arr("urn:scim:schemas:core:1.0"),
+                "members" -> 
+                    Json.arr(
+                        Json.obj(
+                            "display" -> JsString("Babs Jensen"),
+                            "value" -> JsString("2819c223-7f76-453a-919d-413861904646"),
+                            "operation" -> JsString("delete")
+                        )
+                    )
+                )
+        val fakeRequest = FakeRequest(
+                                method = Helpers.PATCH,
+                                uri = uri + "/" + groupId,
+                                headers = headers,
+                                body = groupAsJson
+                            )
+        val result = route(fakeRequest)
+        result must not be(None)
+        val f = result.get
+        status(f) must equalTo(OK)
+        contentType(f) must beSome("application/json")
+        val resultString = contentAsString(f)
+        resultString must not contain ("2819c223-7f76-453a-919d-413861904646")
     }
 
     "patch one group with new member addition" in new WithApplication{
@@ -56,16 +84,44 @@ class GroupControllerSpec extends Specification {
         val resultString = contentAsString(f)
         resultString must contain ("2819c223-7f76-453a-919d-413861904646")
     }
-
-    "patch one group with remove one member" in new WithApplication{
+    
+    "patch one group to remove all members" in new WithApplication{
         val groupAsJson = Json.obj(
                 "schemas" -> Json.arr("urn:scim:schemas:core:1.0"),
+                "meta" -> Json.obj(
+                        "attributes" -> Json.arr("members")
+                    )
+                )
+        val fakeRequest = FakeRequest(
+                                method = Helpers.PATCH,
+                                uri = uri + "/" + groupId,
+                                headers = headers,
+                                body = groupAsJson
+                            )
+        val result = route(fakeRequest)
+        result must not be(None)
+        val f = result.get
+        status(f) must equalTo(OK)
+        contentType(f) must beSome("application/json")
+        val resultString = contentAsString(f)
+        resultString must not contain ("members")
+    }
+
+    "patch one group to replace all members" in new WithApplication{
+        val groupAsJson = Json.obj(
+                "schemas" -> Json.arr("urn:scim:schemas:core:1.0"),
+                "meta" -> Json.obj(
+                        "attributes" -> Json.arr("members")
+                    ),
                 "members" -> 
                     Json.arr(
                         Json.obj(
                             "display" -> JsString("Babs Jensen"),
-                            "value" -> JsString("2819c223-7f76-453a-919d-413861904646"),
-                            "operation" -> JsString("delete")
+                            "value" -> JsString("2819c223-7f76-453a-919d-413861904646")
+                        ),
+                        Json.obj(
+                            "display" -> JsString("James Smith"),
+                            "value" -> JsString("4af510f2-3bc6-4d7a-ad0b-5fe7d1380a25")
                         )
                     )
                 )
@@ -81,7 +137,7 @@ class GroupControllerSpec extends Specification {
         status(f) must equalTo(OK)
         contentType(f) must beSome("application/json")
         val resultString = contentAsString(f)
-        resultString must not contain ("2819c223-7f76-453a-919d-413861904646")
+        resultString must contain ("4af510f2-3bc6-4d7a-ad0b-5fe7d1380a25")
     }
   }
 }

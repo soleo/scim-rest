@@ -144,7 +144,10 @@ VALUES
 '2819c223-7f76-453a-919d-413861904646', 'soleo', 'soleoshao',
 'Xinjiang Shao', 'Shao', 'Xinjiang',  'soleo',
 'http://xinjiangshao.com', true, '123456', 'Xinjiang Shao'
-);
+),
+('4af510f2-3bc6-4d7a-ad0b-5fe7d1380a25', 'jamessmith',  'james',
+'James Smith', 'Smith', 'James',  'james',
+'http://jamessmith.com', true, '654321', 'James Smith');
 
 INSERT IGNORE INTO `emails` (
     `userId`, `value`, `type`, `isPrimary`
