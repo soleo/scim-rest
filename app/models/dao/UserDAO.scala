@@ -60,9 +60,10 @@ object UserDAO {
                SQL("""
                 | SELECT COUNT(*) as numMatches
                 | FROM `users`
-                | WHERE username={userName};
+                | WHERE username={userName} AND id<>{userId};
                 """.stripMargin).on(
-                    "userName" -> userName
+                    "userName" -> userName,
+                    "userId" -> user.id
                 ).as(SqlParser.int("numMatches").single)
             }
     

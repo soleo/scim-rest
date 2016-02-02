@@ -150,8 +150,8 @@ object User {
       }
     }
     
-    def hasConflicts(userName: String) : Boolean = {
-        val user: User = User("", BaseUser(userName))
+    def hasConflicts(userName: String, userId: String = "") : Boolean = {
+        val user: User = User(userId, BaseUser(userName))
         if(UserDAO.exists(user)) {
             true
         }else{

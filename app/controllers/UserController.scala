@@ -118,9 +118,10 @@ class UserController extends Controller {
                 json.validate[User] match {
                     case u: JsSuccess[user] => {
                         val user = u.get
-                        val conflicted = User.hasConflicts(user.baseUser.userName)
+                        
+                        val conflicted = User.hasConflicts(user.baseUser.userName, userId)
                         // pre insertion checking
-                        println(user.baseUser.userName)
+                        
                         if(conflicted) {
                             Conflict(Json.obj("error" -> JsString("userName conflicts with exsiting user")))
                         }else{
