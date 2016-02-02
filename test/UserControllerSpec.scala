@@ -5,11 +5,7 @@ import org.junit.runner._
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.libs.json._
-/**
- * Add your spec here.
- * You can mock out a whole application including requests, plugins etc.
- * For more information, consult the wiki.
- */
+
 @RunWith(classOf[JUnitRunner])
 class UserControllerSpec extends Specification {
   sequential
@@ -83,6 +79,7 @@ class UserControllerSpec extends Specification {
             resultString must contain ("bjensen101")
         }
     }
+
     "replace one user" in new WithApplication {
         if(id.length > 0) {
              val userAsJson = Json.obj(

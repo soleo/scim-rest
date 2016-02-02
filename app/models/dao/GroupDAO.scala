@@ -84,6 +84,7 @@ object GroupDAO {
                             "groupId" -> group.id,
                             "userId" -> member.value
                             ).executeUpdate()
+                            isNew = true
                         } else {
                             // new member?
                             val total:Int = SQL("""
