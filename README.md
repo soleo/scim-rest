@@ -11,19 +11,19 @@
 
 ### Running
 
-```bash
-activator run
+```sh
+$ activator run
 ```
-### Unit Tests and Intergation Test
+### Unit Tests and Integration Test
 
-```bash
-activator test
+```sh
+$ activator test
 ```
 
 ### Deployment
 
-```bash
-sbt stage deployHeroku
+```sh
+$ sbt stage deployHeroku
 ```
 
 ### Heroku Demo
