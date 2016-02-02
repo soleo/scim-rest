@@ -26,9 +26,14 @@ $ activator test
 $ sbt stage deployHeroku
 ```
 
+### Documentation
+
+* [Mashape Documentation](https://market.mashape.com/soleo/scim)
+
 ### Heroku Demo
 
 * [Heroku Demo Link](https://pacific-beach-4736.herokuapp.com)
+
 
 ### Links
 
