@@ -1,4 +1,5 @@
-# SCIM v1.1 RESTful Service 
+![](public/images/lang-logo.png?raw=true)
+# Simple Cloud Identity Management(SCIM): Protocol v1.1 RESTful Service 
 
 [![Build Status](https://travis-ci.org/soleo/scim-rest.svg?branch=master)](https://travis-ci.org/soleo/scim-rest)
 
@@ -28,4 +29,9 @@ sbt stage deployHeroku
 ### Heroku Demo
 
 * [Heroku Demo Link](https://pacific-beach-4736.herokuapp.com)
+
+### Links
+
+* [SCIM v1.1 Specs](http://www.simplecloud.info/specs/draft-scim-core-schema-01.html)
+* [SCIM v1.1 REST API Doc](http://www.simplecloud.info/specs/draft-scim-api-01.html)
 
