@@ -2,6 +2,8 @@
 # Simple Cloud Identity Management(SCIM): Protocol v1.1 RESTful Service 
 
 [![Build Status](https://travis-ci.org/soleo/scim-rest.svg?branch=master)](https://travis-ci.org/soleo/scim-rest)
+[![Contact Me](https://img.shields.io/badge/Contact-%40soleoshao-green.svg)](https://twitter.com/soleoshao)
+[![Licence](https://img.shields.io/badge/Licence-Apache%202-yellow.svg)](https://github.com/soleo/scim-rest/blob/master/LICENSE)
 
 ### Requirements
 
