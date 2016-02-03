@@ -5,6 +5,9 @@
 [![Contact Me](https://img.shields.io/badge/Contact-%40soleoshao-green.svg)](https://twitter.com/soleoshao)
 [![Licence](https://img.shields.io/badge/Licence-Apache%202-yellow.svg)](https://github.com/soleo/scim-rest/blob/master/LICENSE)
 
+### Introduction
+[Why Scala Can Help You To Build  a More Reliable Service](https://medium.com/@soleoshao/why-scala-can-help-you-to-build-a-more-reliable-service-e37bcd8ac685)
+
 ### Requirements
 
 * Scala 2.11.7
