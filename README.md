@@ -1,4 +1,4 @@
-![](logo.png?raw=true)
+![](public/images/lang-logo.png?raw=true)
 # Simple Cloud Identity Management(SCIM): Protocol v1.1 RESTful Service 
 
 [![Build Status](https://travis-ci.org/soleo/scim-rest.svg?branch=master)](https://travis-ci.org/soleo/scim-rest)
