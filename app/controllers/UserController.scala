@@ -1,15 +1,15 @@
 package controllers
 
-import java.util.Date
 import play.api._
 import play.api.mvc._
 import play.api.Play.current
 import play.api.db._
 import play.api.libs.json._
+import java.util.Date
+
 import utils._
 import models._
 import models.User._
-
 
 class UserController extends Controller {
 
@@ -22,12 +22,13 @@ class UserController extends Controller {
         val meta = User.setMetaData(userObj, request)
         userObj.baseUser.password = None  
         var groups = User.addGroupInfo(userObj)
-        var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+        var response = (User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] 
+                        ++ Json.toJson(userObj.baseUser).as[JsObject])
             response = response ++ Json.toJson(groups).as[JsObject]
             response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
         // append a user to the resource list
         resources = resources :+ response
-        // Increase Count Now
+        
         total += 1
     }
             
@@ -51,7 +52,8 @@ class UserController extends Controller {
             //reset password before converting to JSON
             userObj.baseUser.password = None  
             var groups = User.addGroupInfo(userObj)
-            var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+            var response = (User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] 
+                            ++ Json.toJson(userObj.baseUser).as[JsObject])
             response = response ++ Json.toJson(groups).as[JsObject]
             response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
             // post fetching 
@@ -87,7 +89,8 @@ class UserController extends Controller {
                     //reset password before converting to JSON
                     userObj.baseUser.password = None  
                     var groups = User.addGroupInfo(userObj)
-                    var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+                    var response = (User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] 
+                                    ++ Json.toJson(userObj.baseUser).as[JsObject])
                     response = response ++ Json.toJson(groups).as[JsObject]
                     response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
                     // post insertion 
@@ -132,7 +135,8 @@ class UserController extends Controller {
                             //reset password before converting to JSON
                             userObj.baseUser.password = None  
                             var groups = User.addGroupInfo(userObj)
-                            var response = User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] ++ Json.toJson(userObj.baseUser).as[JsObject]
+                            var response = (User.removeBaseTraits(Json.toJson(userObj)).as[JsObject] 
+                                            ++ Json.toJson(userObj.baseUser).as[JsObject])
                             response = response ++ Json.toJson(groups).as[JsObject]
                             response = response ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
                             // post insertion 

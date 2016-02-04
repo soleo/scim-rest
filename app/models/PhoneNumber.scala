@@ -5,8 +5,7 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 object PhoneNumber {
-   implicit val phoneNumberFormat = Json.format[PhoneNumber]
-
+    implicit val phoneNumberFormat = Json.format[PhoneNumber]
 }
 
 case class PhoneNumber(    

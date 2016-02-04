@@ -1,8 +1,6 @@
 package parsing
 
 import scala.util.parsing.combinator._
-import scala.util.parsing.input.CharSequenceReader
-
 
 object FilterParser extends JavaTokenParsers with FilterSyntax {
     

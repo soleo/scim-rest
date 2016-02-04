@@ -1,18 +1,19 @@
 package models
 
-import models.User._
-import models._
-import models.dao.UserDAO
-import models.dao.GroupDAO
 import play.api.mvc.{RequestHeader, AnyContent, Request}
-
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.json.Writes._
-import utils._
+
 import java.util.UUID
 import java.util.Date
+
+import models.User._
+import models._
+import models.dao.UserDAO
+import models.dao.GroupDAO
+import utils._
 
 object User {
     
@@ -168,21 +169,22 @@ object User {
             case None => Meta(new Date, new Date, Some(version), Some(location))
         }
     }
-}    
+}
+
 case class User(
-        id: String = "",
-        baseUser: BaseUser = BaseUser(""),
-        emails: Option[List[Email]] = None,
-        phoneNumbers: Option[List[PhoneNumber]] = None,
-        ims: Option[List[Im]] = None,
-        photos: Option[List[Photo]] = None,
-        addresses: Option[List[Address]] = None,
-        groups: Option[List[Group]] = None,
-        entitlements: Option[List[Entitlement]] = None,
-        roles: Option[List[Role]] = None,
-        x509Certificates: Option[List[X509Certificate]] = None,
-        meta: Option[Meta] = None
-    )
+  id: String = "",
+  baseUser: BaseUser = BaseUser(""),
+  emails: Option[List[Email]] = None,
+  phoneNumbers: Option[List[PhoneNumber]] = None,
+  ims: Option[List[Im]] = None,
+  photos: Option[List[Photo]] = None,
+  addresses: Option[List[Address]] = None,
+  groups: Option[List[Group]] = None,
+  entitlements: Option[List[Entitlement]] = None,
+  roles: Option[List[Role]] = None,
+  x509Certificates: Option[List[X509Certificate]] = None,
+  meta: Option[Meta] = None
+)
  
 
 

@@ -2,7 +2,9 @@ package controllers
 
 import play.api.mvc._
 import scala.concurrent.Future
+
 import models.User
+
 //http://owainlewis.com/articles/play-framework-api-authentication
 class AuthenticatedRequest[A](val user: String, request: Request[A]) 
   extends WrappedRequest[A](request)

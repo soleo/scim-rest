@@ -5,7 +5,7 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 object Role {
-   implicit val roleFormat = Json.format[Role]
+    implicit val roleFormat = Json.format[Role]
 }
 
 case class Role(    

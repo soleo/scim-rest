@@ -1,10 +1,9 @@
 package models
 
-
-import java.util.Date
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Writes._
+import java.util.Date
 
 object Meta {
 
@@ -31,9 +30,9 @@ object Meta {
 }
 
 case class Meta (
-                  created: Date,
-                  lastModified: Date,
-                  version: Option[String] = None,
-                  location: Option[String] = None,
-                  attributes: Option[List[String]] = None
-                )
+  created: Date,
+  lastModified: Date,
+  version: Option[String] = None,
+  location: Option[String] = None,
+  attributes: Option[List[String]] = None
+)

@@ -1,14 +1,14 @@
 package models.dao
 
-import models._
 import anorm._
 import anorm.SqlParser._
 import play.api.Play.current
 import play.api.db._
-import utils._
 import java.util.Date
+
+import models._
 import parsing._
-import scala.language.implicitConversions
+import utils._
 
 object UserDAO {
   
@@ -113,7 +113,7 @@ object UserDAO {
         val filterSql = filter match{
              case Some(f) => {
                 //val trans = FilterParser.parse(f.trim.toLowerCase)
-                
+
                 // The following is a tmp solution for filtering emails. I don't like it!
                 // This only support email field filtering with AND OR CO SW EQ operators
                 val tranlatedSql = f.trim.toLowerCase.replaceAll("eq","=")
@@ -124,6 +124,7 @@ object UserDAO {
              }
              case None => ""
         }
+
         val combinedSql = """
          | SELECT *
          | FROM `users`
@@ -221,8 +222,6 @@ object UserDAO {
                     "userId" -> user.id
                 ).executeUpdate()
                 // Step 3
-                //UserDAO.create(user.id, user.baseUser, user.emails, user.phoneNumbers, user.ims, user.photos,
-                //            user.addresses, user.groups, user.entitlements, user.roles, user.x509Certificates)
                 // a repeat of create function but maybe should be in a util function
                 createWithConnection(user.id, user.baseUser, user.emails, user.phoneNumbers, user.ims, 
                           user.photos, user.addresses, user.groups, user.entitlements, 
@@ -274,7 +273,7 @@ object UserDAO {
         val name: Name = user.name.getOrElse(Name(None, None, None, None, None, None))
         val m: Meta = meta.getOrElse(Meta(new Date, new Date, None, None, None))
         
-        // add base user info finally
+       
         SQL(
          """
             | INSERT IGNORE INTO `users` (
@@ -315,7 +314,7 @@ object UserDAO {
             "created" -> m.created,
             "lastModified" -> m.lastModified
          ).executeInsert()
-         // insert all other info first
+         
         addresses match {
             case Some(addrs) =>
                 for( addr <- addrs )

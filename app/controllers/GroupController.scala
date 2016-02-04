@@ -2,10 +2,9 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.cache.Cache
 import play.api.Play.current
 import play.api.libs.json._
-import play.api.db._
+
 import models.Group
 import models.Meta
 
@@ -23,7 +22,7 @@ class GroupController extends Controller {
             val meta = Group.setMetaData(group, request)
             var groupJsonObj = Json.toJson(group).as[JsObject] ++ Json.obj("meta" -> Json.toJson(meta).as[JsObject])
             resources = resources :+ groupJsonObj
-            // Increase Count Now
+            
             total += 1
         }
                 
@@ -49,7 +48,7 @@ class GroupController extends Controller {
                             val groupObj = Group.patchMembers(groupId, group.members) 
                             groupObj match {
                                 case Some(grp) => 
-                                    //TODO: post fetching operation, such as add meta data back, add schemas back
+                                    
                                     val meta = Group.setMetaData(grp, request)
                                     var response = Json.toJson(grp).as[JsObject] ++ Json.obj("meta"-> Json.toJson(meta).as[JsObject])
                                     response = response ++ schemas

@@ -1,12 +1,12 @@
 package models.dao
 
-import models.Group
-import models.Member
 import anorm._
 import anorm.SqlParser._
-
 import play.api.db._
 import play.api.Play.current
+
+import models.Group
+import models.Member
 
 object GroupDAO {
   

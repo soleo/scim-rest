@@ -5,8 +5,9 @@ import play.api.libs.json._
 import play.api.data.validation.ValidationError
 
 object Address {
-  implicit val addressFormat = Json.format[Address]
+    implicit val addressFormat = Json.format[Address]
 }
+
 case class Address (
     `type`: Option[String] = None,
     streetAddress: Option[String] = None,

@@ -4,16 +4,16 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.data.validation.ValidationError
 import play.api.mvc.{RequestHeader, AnyContent, Request}
-import models.dao.GroupDAO
-import utils._
 import java.util.Date
+
+import utils._
+import models.dao.GroupDAO
 
 object Member {
     implicit val memberFormat = Json.format[Member]
 }
 
 case class Member( value: String, display: Option[String], operation: Option[String] = None)
-
 
 object Group {
     

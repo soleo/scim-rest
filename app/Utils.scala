@@ -1,11 +1,11 @@
 package utils
 
 import play.api.mvc.{RequestHeader, AnyContent, Request}
-import models.Meta
-import models.User
-import java.util.Date
 import play.api.libs.json._
 import play.api.libs.Codecs
+
+import models.Meta
+import models.User
 
 object Utils {
   
@@ -35,7 +35,7 @@ object Utils {
           "Errors" -> Json.arr(
             Json.obj(
               "description" -> JsString("Resource " + id +" not found"),
-              "code" -> 404  	  
+              "code" -> 404       
             )
           )
       )
