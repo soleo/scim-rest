@@ -17,16 +17,16 @@ object UserDAO {
   }
 
   val userParser  = {
-                       str("id") ~ str("username") ~ get[Option[String]]("formattedName") ~ 
-                       get[Option[String]]("familyName") ~ get[Option[String]]("givenName") ~
-                       get[Option[String]]("middleName") ~ get[Option[String]]("honorificPrefix") ~ 
-                       get[Option[String]]("honorificSuffix") ~
-                       get[Option[String]]("externalId") ~ get[Option[String]]("displayName") ~
-                       get[Option[String]]("nickname") ~ get[Option[String]]("profileURL") ~
-                       get[Option[String]]("title") ~ get[Option[String]]("userType") ~
-                       get[Option[String]]("preferredLanguage") ~ get[Option[String]]("locale") ~
-                       get[Option[String]]("timezone") ~ get[Option[Boolean]]("active") ~
-                       get[Date]("created") ~ get[Date]("lastModified") map {
+                       str("users.id") ~ str("users.username") ~ get[Option[String]]("users.formattedName") ~ 
+                       get[Option[String]]("users.familyName") ~ get[Option[String]]("users.givenName") ~
+                       get[Option[String]]("users.middleName") ~ get[Option[String]]("users.honorificPrefix") ~ 
+                       get[Option[String]]("users.honorificSuffix") ~
+                       get[Option[String]]("users.externalId") ~ get[Option[String]]("users.displayName") ~
+                       get[Option[String]]("users.nickname") ~ get[Option[String]]("users.profileURL") ~
+                       get[Option[String]]("users.title") ~ get[Option[String]]("users.userType") ~
+                       get[Option[String]]("users.preferredLanguage") ~ get[Option[String]]("users.locale") ~
+                       get[Option[String]]("users.timezone") ~ get[Option[Boolean]]("users.active") ~
+                       get[Date]("users.created") ~ get[Date]("users.lastModified") map {
                          case id ~ username ~ formattedName ~ familyName ~ givenName ~ middleName ~ honorificPrefix ~ honorificSuffix ~
                              externalId ~ displayName ~ nickname ~ profileURL ~ title ~ userType ~ preferredLanguage ~ locale ~ timezone ~
                                 active ~ created ~ lastModified => 
@@ -112,18 +112,24 @@ object UserDAO {
      // parse filter to see if we can deal with it
         val filterSql = filter match{
              case Some(f) => {
-                val parsedObj = FilterParser.parse(f.trim.toLowerCase)
-                println(parsedObj)
-                ""
+                //val trans = FilterParser.parse(f.trim.toLowerCase)
+                
+                // The following is a tmp solution for filtering emails. I don't like it!
+                // This only support email field filtering with AND OR CO SW EQ operators
+                val tranlatedSql = f.trim.toLowerCase.replaceAll("eq","=")
+                                    .replaceAll("co \"(.*)\"", "LIKE \"%$1%\"")
+                                    .replaceAll("sw \"(.*)\"", "LIKE \"%$1\"")
+                                    .replaceAll("emails", "emails.value")
+                "WHERE "+tranlatedSql
              }
              case None => ""
         }
-    
-        val users: List[User] = SQL(
-        """
+        val combinedSql = """
          | SELECT *
-         | FROM `users`;
-        """.stripMargin).as(userParser.*)
+         | FROM `users`
+         | LEFT JOIN `emails` ON emails.userId=users.id
+        """ + filterSql + ";";
+        val users: List[User] = SQL(combinedSql.stripMargin).as(userParser.*)
 
          // add more sauce to them
         import scala.collection.mutable.ListBuffer
