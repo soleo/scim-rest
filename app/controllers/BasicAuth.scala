@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import models.User
 
 //http://owainlewis.com/articles/play-framework-api-authentication
-class AuthenticatedRequest[A](val user: String, request: Request[A]) 
+class AuthenticatedRequest[A](val user: String, request: Request[A])
   extends WrappedRequest[A](request)
 
 object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
@@ -26,7 +26,7 @@ object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
       Results.Unauthorized
         .withHeaders("WWW-Authenticate" -> "Basic realm=Unauthorized"))
 
-  private [this] def decodeBasicAuth(authHeader: String): (String, String) = {
+  private[this] def decodeBasicAuth(authHeader: String): (String, String) = {
     val baStr = authHeader.replaceFirst("Basic ", "")
     val decoded = new sun.misc.BASE64Decoder().decodeBuffer(baStr)
     val Array(email, password) = new String(decoded).split(":")
