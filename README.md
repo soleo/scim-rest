@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/soleo/scim-rest.svg?branch=master)](https://travis-ci.org/soleo/scim-rest)
 [![Contact Me](https://img.shields.io/badge/Contact-%40soleoshao-green.svg)](https://twitter.com/soleoshao)
 [![Licence](https://img.shields.io/badge/Licence-Apache%202-yellow.svg)](https://github.com/soleo/scim-rest/blob/master/LICENSE)
-[![Coverage Status](https://coveralls.io/repos/github/soleo/scim-rest/badge.svg?branch=master)](https://coveralls.io/github/soleo/scim-rest?branch=master)
+[![Codacy Badge](https://api.codacy.com/project/badge/coverage/193c0e5c8ee44df2949fde8ad83b783b)](https://www.codacy.com/app/shaoxinjiang/scim-rest)
 [![Codacy Badge](https://api.codacy.com/project/badge/grade/193c0e5c8ee44df2949fde8ad83b783b)](https://www.codacy.com/app/shaoxinjiang/scim-rest)
 
 ### Introduction
