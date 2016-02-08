@@ -8,7 +8,7 @@ notifications:
   email: false
 jdk:
 - oraclejdk8
-script: sbt clean coverage test
+script: sbt clean coverage test  && sbt coverageAggregate
 after_success: sbt coveralls
 before_install:
 - sudo sed -i -e s/table_cache/table_open_cache/ -e /log_slow_queries/d /etc/mysql/my.cnf
