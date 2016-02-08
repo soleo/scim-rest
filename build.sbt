@@ -27,3 +27,5 @@ routesGenerator := InjectedRoutesGenerator
 fork in run := true
 
 herokuAppName in Compile := "pacific-beach-4736"
+
+coverageEnabled := true
