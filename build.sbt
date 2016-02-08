@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
 )
 libraryDependencies += evolutions
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.3"
 
 libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ )
 
