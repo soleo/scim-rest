@@ -7,16 +7,21 @@ branches:
 notifications:
   email: false
 jdk:
-  - oraclejdk8
+- oraclejdk8
+script: sbt clean coverage test
+after_success: sbt coveralls
 before_install:
-  - sudo sed -i -e s/table_cache/table_open_cache/ -e /log_slow_queries/d /etc/mysql/my.cnf
-  - sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
-  - sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ precise mysql-5.6'
-  - sudo apt-get -qq update           
-  - sudo apt-get -qq update
-  - sudo apt-get -qq -o Dpkg::Options::=--force-confold install mysql-server-5.6
+- sudo sed -i -e s/table_cache/table_open_cache/ -e /log_slow_queries/d /etc/mysql/my.cnf
+- sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5072E1F5
+- sudo add-apt-repository 'deb http://repo.mysql.com/apt/ubuntu/ precise mysql-5.6'
+- sudo apt-get -qq update
+- sudo apt-get -qq update
+- sudo apt-get -qq -o Dpkg::Options::=--force-confold install mysql-server-5.6
 before_script:
-  - mysql -u root < scripts/db_clean.sql
-  - mysql -u root < scripts/db_init.sql
-  - mysql -u scim_test -p1e0OZH5f9asCJ0Anj11ia0Wmy scim_test < scripts/db_schema.sql
-  - mysql -u scim_test -p1e0OZH5f9asCJ0Anj11ia0Wmy scim_test -e 'show tables;'
+- mysql -u root < scripts/db_clean.sql
+- mysql -u root < scripts/db_init.sql
+- mysql -u scim_test -p1e0OZH5f9asCJ0Anj11ia0Wmy scim_test < scripts/db_schema.sql
+- mysql -u scim_test -p1e0OZH5f9asCJ0Anj11ia0Wmy scim_test -e 'show tables;'
+env:
+  matrix:
+    secure: Ml8pecpO/X6AyuXXgW0OoNXgoidx6WUbh3fcFVwdBlTOuEKzDuN/cIn1UhhoGRwOiwAar8mZ6uQ1yTDsjpi+MrCnyR8HZ7qxFAA0W7M2NxQyUSatZcDlZ3axIKGgocilGa5o+BF2SeWIn+jTA9vzsXN+ktKrdq6bWZdt/RRaqLVIt7MzyW2ZkIrHbo6gQDCAN1LtIwtDNr5+EywqV1icIreI+yr8Prwr5hiX5GCaCvloghCCLMhtKkxX0hvhGv8QMFSrCqp5O8Es1B/RRPioj+arY5voy18BUUwR83VQSFOk4mGTn30Pl6aHx9ie1mB7LPHk0FcA6U5PbLRKwLQYkvsFgTEFszic+knmml3nhDm4m8TxTk1epv4yDTcrAYpQLIRwpEBpuqYNpAi1ToKgbcfdhkVT+9XIrdorfh3KbPI6aLjSG1WfMK1ZA/6hsURJqm39x/tsPQt1QRZjxNITAod9FXSW09ms1g108/OiYu26+/0c1k3S751t8ANqEE0PZ0jHyDt56tsBjScOhizvBq/O12okEW17cyT7fhtrmOoS4uY/NwFI+2YDR5PVQbmTvGFPZC8q6eZv51X5S71j2VMHqUfaxE60irg5OHEqHt6nkrgxNfVmR3n2T8F4zwCbW+gLFJ0Rmpbnb/PHOcB+KLKfQDISS6K3UNolgB4xroc=
