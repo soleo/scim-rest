@@ -4,4 +4,4 @@ web:
     - 5000:80
   environment:
     DEBUG: 'true'
-    JAWSDB_URL: "mysql://scim_test:1e0OZH5f9asCJ0Anj11ia0Wmy@localhost/scim_test"
+    JAWSDB_URL: "mysql://p4mt47a7xqt1cm7o:eajsoe048n7kbxpe@jw0ch9vofhcajqg7.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/kkye4k8grk0iedlz"
