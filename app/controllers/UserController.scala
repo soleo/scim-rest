@@ -160,15 +160,10 @@ class UserController extends Controller {
     user match {
       case None => NotFound(Utils.resourceNotFoundMessage(userId))
       case Some(userObj) => {
-        val meta = User.setMetaData(userObj, request)
-
+       
         User.delete(userId)
-
-        val ETag = meta.version.getOrElse("")
-        val location = meta.location.getOrElse("")
-        Ok("").withHeaders(
-          LOCATION -> location,
-          ETAG -> ETag)
+        
+        Ok
       }
     }
   }
