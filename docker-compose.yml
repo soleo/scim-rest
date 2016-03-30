@@ -1,7 +1,22 @@
-web:
-  build: .
-  ports:
-    - 5000:80
-  environment:
-    DEBUG: 'true'
-    JAWSDB_URL: "mysql://p4mt47a7xqt1cm7o:eajsoe048n7kbxpe@jw0ch9vofhcajqg7.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/kkye4k8grk0iedlz"
+version: '2'
+services:
+  web:
+    build: .
+    ports:
+      - "8000:9000"
+    links:
+      - db
+    volumes:
+      - .:/code
+    env_file:
+      - .env
+    stdin_open: true
+    depends_on:
+      - db
+  db:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: scim_rest
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_USER: scim_test
+      MYSQL_PASSWORD: 1e0OZH5f9asCJ0Anj11ia0Wmy
